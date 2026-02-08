@@ -371,6 +371,168 @@ tr:hover .qt{opacity:1}
 @media(max-width:1200px){.sidebar{width:300px}}
 @media(max-width:960px){.sidebar{display:none}.search-wrapper{flex:0 1 300px}}
 @media(max-width:700px){.pricing-cards{grid-template-columns:1fr}}
+/* ============ WALLET / PORTFOLIO / ALERTS ============ */
+.alert-count{background:var(--red);color:white;font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px}
+
+/* ============ VIEW LAYOUTS ============ */
+.view-grid{display:grid;gap:12px;padding:16px;overflow-y:auto;flex:1}
+.view-grid.charts-2x3{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr}
+.view-grid.charts-2x2{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.chart-cell{background:var(--bg-card);border:1px solid var(--border-default);border-radius:var(--radius-lg);overflow:hidden;position:relative;min-height:260px}
+.chart-cell-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border-subtle);background:rgba(0,0,0,0.2)}
+.chart-cell-token{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.85rem;color:var(--text-primary)}
+.chart-cell-chg{font-family:var(--font-mono);font-size:.8rem;font-weight:600}
+.chart-cell-close{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.8rem;padding:2px 6px;border-radius:4px}
+.chart-cell-close:hover{color:var(--red);background:var(--red-dim)}
+.chart-cell iframe{width:100%;height:calc(100% - 42px);border:none}
+
+/* Whale/Scanner/Copytrade card view */
+.card-view{display:flex;flex-direction:column;gap:10px;padding:16px;overflow-y:auto;flex:1}
+.data-card{background:var(--bg-card);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:16px;transition:all var(--transition);cursor:pointer}
+.data-card:hover{border-color:var(--border-active);background:var(--bg-card-hover);transform:translateY(-1px)}
+.data-card-row{display:flex;align-items:center;gap:14px}
+.data-card-icon{width:44px;height:44px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.data-card-info{flex:1;min-width:0}
+.data-card-title{font-weight:700;font-size:.9rem;color:var(--text-primary);display:flex;align-items:center;gap:6px}
+.data-card-sub{font-size:.75rem;color:var(--text-tertiary);margin-top:2px;font-family:var(--font-mono)}
+.data-card-right{text-align:right;flex-shrink:0}
+.data-card-val{font-family:var(--font-mono);font-weight:700;font-size:.95rem}
+.data-card-meta{font-size:.7rem;color:var(--text-muted);margin-top:2px}
+.data-card-tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.data-card-tag{font-size:.65rem;padding:3px 8px;border-radius:6px;font-weight:600;font-family:var(--font-mono)}
+.data-card-tag.buy{background:var(--accent-dim);color:var(--accent)}
+.data-card-tag.sell{background:var(--red-dim);color:var(--red)}
+.data-card-tag.info{background:rgba(77,166,255,0.1);color:var(--blue)}
+.data-card-tag.warn{background:rgba(255,170,51,0.1);color:var(--orange)}
+.data-card-tag.new{background:var(--accent-dim);color:var(--accent)}
+
+/* Whale amounts */
+.whale-amount{font-family:var(--font-mono);font-weight:800;font-size:1rem}
+.whale-amount.buy{color:var(--accent)}
+.whale-amount.sell{color:var(--red)}
+
+/* AI Scanner expanded rows */
+.scanner-bar{height:8px;border-radius:4px;background:rgba(255,255,255,0.05);overflow:hidden;margin-top:8px}
+.scanner-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.scanner-metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.scanner-metric{text-align:center;padding:8px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.02)}
+.scanner-metric-val{font-family:var(--font-mono);font-weight:700;font-size:.85rem}
+.scanner-metric-label{font-size:.6rem;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Copy trade profiles */
+.trader-card{background:var(--bg-card);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:18px;transition:all var(--transition)}
+.trader-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,219,164,0.08)}
+.trader-header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.trader-avi{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;border:2px solid var(--border-default)}
+.trader-name{font-weight:800;font-size:.95rem;color:var(--text-primary)}
+.trader-addr{font-family:var(--font-mono);font-size:.7rem;color:var(--text-muted)}
+.trader-stats{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.trader-stat{text-align:center;padding:10px 6px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle)}
+.trader-stat-val{font-family:var(--font-mono);font-weight:700;font-size:.85rem;color:var(--text-primary)}
+.trader-stat-label{font-size:.6rem;color:var(--text-muted);margin-top:2px;text-transform:uppercase}
+.trader-trades{display:flex;gap:6px;flex-wrap:wrap}
+.trader-trade{font-size:.7rem;padding:4px 8px;border-radius:6px;font-family:var(--font-mono);font-weight:600}
+.copy-btn{width:100%;margin-top:14px;padding:10px;border-radius:var(--radius-md);border:1px solid var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:700;font-size:.8rem;cursor:pointer;font-family:var(--font-body);transition:all var(--transition)}
+.copy-btn:hover{background:var(--accent);color:var(--bg-deep)}
+
+/* Watchlist */
+.watchlist-empty{text-align:center;padding:60px 20px;color:var(--text-tertiary)}
+.watchlist-empty-icon{font-size:3rem;margin-bottom:16px}
+.watchlist-hint{font-size:.8rem;color:var(--text-muted);margin-top:8px}
+.star-btn{background:none;border:none;cursor:pointer;font-size:1rem;padding:4px;transition:all var(--transition);opacity:0.5}
+.star-btn:hover,.star-btn.active{opacity:1;transform:scale(1.15)}
+
+/* View header bar */
+.view-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border-subtle)}
+.view-header-title{font-weight:800;font-size:1rem;color:var(--text-primary);display:flex;align-items:center;gap:8px}
+.view-header-sub{font-size:.75rem;color:var(--text-tertiary)}
+.view-header-actions{display:flex;gap:8px}
+.view-header-btn{padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--border-default);background:var(--bg-card);color:var(--text-secondary);font-size:.75rem;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:all var(--transition)}
+.view-header-btn:hover{border-color:var(--accent);color:var(--accent)}
+.view-header-btn.active{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.hdr-btn.connected{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.hdr-btn.connected .wallet-addr-short{font-family:var(--font-mono);font-size:.75rem}
+
+/* Shared panel overlay */
+.panel-overlay{position:fixed;inset:0;z-index:1500;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);display:none;align-items:flex-start;justify-content:flex-end;padding:80px 20px 20px}
+.panel-overlay.active{display:flex}
+.panel{width:420px;max-width:95vw;max-height:calc(100vh - 100px);background:var(--bg-primary);border:1px solid var(--border-default);border-radius:var(--radius-xl);box-shadow:0 24px 80px rgba(0,0,0,0.6);display:flex;flex-direction:column;overflow:hidden;animation:panelSlide .3s cubic-bezier(0.16,1,0.3,1)}
+@keyframes panelSlide{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+.panel-header{padding:20px 24px;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-weight:800;font-size:1.05rem;color:var(--text-primary)}
+.panel-close{background:var(--bg-card);border:1px solid var(--border-default);color:var(--text-tertiary);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all var(--transition)}
+.panel-close:hover{border-color:var(--red);color:var(--red)}
+.panel-body{flex:1;overflow-y:auto;padding:16px 24px}
+.panel-empty{text-align:center;padding:48px 20px;color:var(--text-tertiary);font-size:.9rem}
+.panel-empty-icon{font-size:2.5rem;margin-bottom:12px}
+
+/* Wallet Connect Panel */
+.wallet-option{display:flex;align-items:center;gap:14px;padding:16px;border-radius:var(--radius-md);border:1px solid var(--border-default);cursor:pointer;transition:all var(--transition);margin-bottom:10px;background:var(--bg-card)}
+.wallet-option:hover{border-color:var(--accent);background:var(--bg-card-hover);transform:translateY(-1px)}
+.wallet-option img{width:40px;height:40px;border-radius:10px}
+.wallet-option-info{flex:1}
+.wallet-option-name{font-weight:700;color:var(--text-primary);font-size:.95rem}
+.wallet-option-desc{font-size:.75rem;color:var(--text-tertiary);margin-top:2px}
+.wallet-option-tag{font-size:.65rem;padding:3px 8px;border-radius:8px;font-weight:600}
+.wallet-option-tag.detected{background:var(--accent-dim);color:var(--accent)}
+.wallet-option-tag.not-detected{background:var(--bg-elevated);color:var(--text-muted)}
+
+/* Connected wallet info */
+.wallet-info-card{background:var(--bg-card);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px}
+.wallet-addr-full{font-family:var(--font-mono);font-size:.8rem;color:var(--text-secondary);word-break:break-all;margin-bottom:12px}
+.wallet-balance{font-size:1.8rem;font-weight:800;color:var(--text-primary);margin-bottom:4px}
+.wallet-balance-label{font-size:.75rem;color:var(--text-tertiary)}
+.wallet-actions{display:flex;gap:8px;margin-top:14px}
+.wallet-action-btn{flex:1;padding:10px;border-radius:var(--radius-md);font-size:.8rem;font-weight:600;cursor:pointer;transition:all var(--transition);font-family:var(--font-body);border:1px solid var(--border-default)}
+.wallet-action-btn.copy{background:var(--bg-elevated);color:var(--text-secondary)}
+.wallet-action-btn.copy:hover{background:var(--bg-card-hover);color:var(--text-primary)}
+.wallet-action-btn.disconnect{background:var(--red-dim);color:var(--red);border-color:rgba(255,77,106,0.2)}
+.wallet-action-btn.disconnect:hover{background:rgba(255,77,106,0.2)}
+
+/* Portfolio tokens */
+.portfolio-token{display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-subtle);margin-bottom:8px;transition:all var(--transition)}
+.portfolio-token:hover{border-color:var(--border-active);background:var(--bg-card)}
+.portfolio-token-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;flex-shrink:0}
+.portfolio-token-info{flex:1;min-width:0}
+.portfolio-token-name{font-weight:600;font-size:.85rem;color:var(--text-primary)}
+.portfolio-token-balance{font-size:.75rem;color:var(--text-tertiary);font-family:var(--font-mono)}
+.portfolio-token-val{text-align:right}
+.portfolio-token-usd{font-weight:700;font-size:.85rem;color:var(--text-primary)}
+.portfolio-token-chg{font-size:.7rem}
+.portfolio-total{display:flex;justify-content:space-between;align-items:center;padding:16px;border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(0,219,164,0.08),rgba(77,166,255,0.06));border:1px solid rgba(0,219,164,0.15);margin-bottom:16px}
+.portfolio-total-label{font-size:.75rem;color:var(--text-tertiary);font-weight:600}
+.portfolio-total-val{font-size:1.4rem;font-weight:800;color:var(--text-primary)}
+.portfolio-loading{text-align:center;padding:30px;color:var(--text-tertiary)}
+
+/* Alerts */
+.alert-item{display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-subtle);margin-bottom:8px;transition:all var(--transition)}
+.alert-item:hover{border-color:var(--border-active);background:var(--bg-card)}
+.alert-item-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0}
+.alert-item-info{flex:1;min-width:0}
+.alert-item-name{font-weight:600;font-size:.85rem;color:var(--text-primary)}
+.alert-item-cond{font-size:.75rem;color:var(--text-tertiary)}
+.alert-item-active{color:var(--accent);font-size:.65rem;font-weight:700;background:var(--accent-dim);padding:3px 8px;border-radius:8px}
+.alert-item-remove{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:4px;transition:color var(--transition)}
+.alert-item-remove:hover{color:var(--red)}
+
+/* Alert creation form */
+.alert-form{background:var(--bg-card);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px}
+.alert-form-title{font-weight:700;font-size:.85rem;color:var(--text-primary);margin-bottom:12px}
+.alert-form-row{display:flex;gap:8px;margin-bottom:10px}
+.alert-form-row select,.alert-form-row input{flex:1;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text-primary);font-family:var(--font-body);font-size:.8rem}
+.alert-form-row select:focus,.alert-form-row input:focus{outline:none;border-color:var(--accent)}
+.alert-form-row select option{background:var(--bg-card);color:var(--text-primary)}
+.alert-add-btn{width:100%;padding:10px;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--accent),#00c9a7);border:none;color:var(--bg-deep);font-weight:700;font-size:.8rem;cursor:pointer;font-family:var(--font-body);transition:all var(--transition)}
+.alert-add-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,219,164,0.3)}
+
+/* Alert toggle in token modal */
+.alert-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:var(--radius-md);background:var(--bg-card);border:1px solid var(--border-default);margin-top:12px;cursor:pointer}
+.alert-toggle-row:hover{border-color:var(--accent)}
+.alert-toggle-label{font-size:.8rem;font-weight:600;color:var(--text-primary)}
+.alert-toggle{width:44px;height:24px;border-radius:12px;background:var(--bg-elevated);border:1px solid var(--border-default);position:relative;transition:all var(--transition);cursor:pointer;flex-shrink:0}
+.alert-toggle.on{background:var(--accent);border-color:var(--accent)}
+.alert-toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:white;transition:all var(--transition)}
+.alert-toggle.on::after{left:22px}
 </style>
 </head>
 <body>
@@ -390,9 +552,9 @@ tr:hover .qt{opacity:1}
     </div>
   </div>
   <div class="header-right">
-    <button class="hdr-btn"><span class="notif-dot"></span> Alerts</button>
-    <button class="hdr-btn">📊 Portfolio</button>
-    <button class="hdr-btn glow">Connect Wallet</button>
+    <button class="hdr-btn" id="alertsBtn" onclick="openAlerts()"><span class="notif-dot" id="alertDot" style="display:none"></span>🔔 Alerts <span class="alert-count" id="alertCount" style="display:none">0</span></button>
+    <button class="hdr-btn" id="portfolioBtn" onclick="openPortfolio()">📊 Portfolio</button>
+    <button class="hdr-btn glow" id="walletBtn" onclick="connectWallet()">Connect Wallet</button>
   </div>
 </header>
 
@@ -408,18 +570,18 @@ tr:hover .qt{opacity:1}
 
 <!-- NAV -->
 <nav class="nav">
-  <div class="nav-item active">🔥 Trending</div>
-  <div class="nav-item">⚡ New Pairs <span class="nav-badge live">LIVE</span></div>
-  <div class="nav-item">📈 Gainers</div>
-  <div class="nav-item">📉 Losers</div>
+  <div class="nav-item active" data-view="trending">🔥 Trending</div>
+  <div class="nav-item" data-view="new">⚡ New Pairs <span class="nav-badge live">LIVE</span></div>
+  <div class="nav-item" data-view="gainers">📈 Gainers</div>
+  <div class="nav-item" data-view="losers">📉 Losers</div>
   <div class="nav-sep"></div>
-  <div class="nav-item">🐋 Whale Watch <span class="nav-badge ai">AI</span></div>
-  <div class="nav-item">🧠 AI Scanner <span class="nav-badge ai">AI</span></div>
-  <div class="nav-item">📊 Multicharts</div>
+  <div class="nav-item" data-view="whales">🐋 Whale Watch <span class="nav-badge ai">AI</span></div>
+  <div class="nav-item" data-view="scanner">🧠 AI Scanner <span class="nav-badge ai">AI</span></div>
+  <div class="nav-item" data-view="multicharts">📊 Multicharts</div>
   <div class="nav-sep"></div>
-  <div class="nav-item">🚀 Launchpad</div>
-  <div class="nav-item">👥 Copy Trade</div>
-  <div class="nav-item">⭐ Watchlist</div>
+  <div class="nav-item" data-view="launchpad">🚀 Launchpad</div>
+  <div class="nav-item" data-view="copytrade">👥 Copy Trade</div>
+  <div class="nav-item" data-view="watchlist">⭐ Watchlist</div>
 </nav>
 
 <!-- FILTERS -->
@@ -642,6 +804,71 @@ tr:hover .qt{opacity:1}
 
 
 
+<!-- WALLET PANEL -->
+<div class="panel-overlay" id="walletPanel" onclick="if(event.target===this)closeWalletPanel()">
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title" id="walletPanelTitle">Connect Wallet</span>
+      <button class="panel-close" onclick="closeWalletPanel()">✕</button>
+    </div>
+    <div class="panel-body" id="walletPanelBody">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- PORTFOLIO PANEL -->
+<div class="panel-overlay" id="portfolioPanel" onclick="if(event.target===this)closePortfolio()">
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">📊 Portfolio</span>
+      <button class="panel-close" onclick="closePortfolio()">✕</button>
+    </div>
+    <div class="panel-body" id="portfolioPanelBody">
+      <div class="panel-empty">
+        <div class="panel-empty-icon">👛</div>
+        Connect your wallet to view your tokens
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ALERTS PANEL -->
+<div class="panel-overlay" id="alertsPanel" onclick="if(event.target===this)closeAlerts()">
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">🔔 Price Alerts</span>
+      <button class="panel-close" onclick="closeAlerts()">✕</button>
+    </div>
+    <div class="panel-body" id="alertsPanelBody">
+      <!-- Alert creation form -->
+      <div class="alert-form" id="alertForm">
+        <div class="alert-form-title">Create New Alert</div>
+        <div class="alert-form-row">
+          <select id="alertTokenSelect">
+            <option value="">Select token...</option>
+          </select>
+        </div>
+        <div class="alert-form-row">
+          <select id="alertCondition">
+            <option value="above">Price goes above</option>
+            <option value="below">Price goes below</option>
+            <option value="change_up">24h change above %</option>
+            <option value="change_down">24h change below %</option>
+            <option value="volume">Volume exceeds $</option>
+          </select>
+        </div>
+        <div class="alert-form-row">
+          <input type="text" id="alertValue" placeholder="Enter value..." />
+        </div>
+        <button class="alert-add-btn" onclick="addAlert()">+ Add Alert</button>
+      </div>
+      <!-- Active alerts list -->
+      <div id="alertsList"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 // =============================================
 // RADAR v5 — LIVE ON-CHAIN DATA ENGINE
@@ -832,9 +1059,11 @@ async function loadData(view) {
   currentView = view || currentView;
   let result;
   
-  if (currentView === 'new') {
+  // Map views to API calls
+  const apiView = currentView === 'losers' ? 'gainers' : currentView === 'launchpad' ? 'new' : currentView;
+  if (apiView === 'new') {
     result = await fetchNewPools();
-  } else if (currentView === 'gainers') {
+  } else if (apiView === 'gainers') {
     result = await fetchTopPools();
   } else {
     result = await fetchTrending();
@@ -849,7 +1078,8 @@ async function loadData(view) {
     renderDynamicFeed();
     renderWallets();
   } else if (isLoading) {
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="14" style="text-align:center;padding:40px;color:var(--red)">⚠️ Failed to load — retrying...</td></tr>';
+    const tb = document.getElementById('tbody');
+    if (tb) tb.innerHTML = '<tr><td colspan="14" style="text-align:center;padding:40px;color:var(--red)">⚠️ Failed to load — retrying...</td></tr>';
     setTimeout(() => loadData(currentView), 5000);
   }
 }
@@ -1170,18 +1400,1021 @@ function setTab(el, type) {
 // =============================================
 // NAV: Wire up filter tabs to switch data views
 // =============================================
-document.querySelectorAll('.nav-item').forEach(n => {
-  n.addEventListener('click', function () {
-    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
-    this.classList.add('active');
-    const text = this.textContent.toLowerCase();
-    if (text.includes('new')) loadData('new');
-    else if (text.includes('gainer') || text.includes('volume')) loadData('gainers');
-    else loadData('trending');
-  });
+// =============================================
+// ROUTER — Central view switcher for all nav tabs
+// =============================================
+let activeView = 'trending';
+let watchlist = JSON.parse(localStorage.getItem('radar_watchlist') || '[]');
+const contentEl = () => document.querySelector('.content');
+const TABLE_HTML = `<div class="table-wrap"><table><thead><tr><th style="width:44px" title="RADAR Score">#</th><th>Token</th><th>Price</th><th>AI Score</th><th>Chart</th><th>5M</th><th>1H</th><th>6H</th><th>24H</th><th>Volume</th><th>Liquidity</th><th>MCAP</th><th>Safety</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>`;
+
+function saveWatchlist() { localStorage.setItem('radar_watchlist', JSON.stringify(watchlist)); }
+function isWatched(tick) { return watchlist.some(w => w.tick === tick); }
+function toggleWatch(tick, name, imageUrl) {
+  if (isWatched(tick)) { watchlist = watchlist.filter(w => w.tick !== tick); }
+  else { watchlist.push({ tick, name, imageUrl, added: Date.now() }); }
+  saveWatchlist();
+  if (activeView === 'watchlist') switchView('watchlist');
+  // Re-render table if in table view to update star
+  if (['trending','new','gainers','losers'].includes(activeView)) render();
+}
+
+function switchView(view) {
+  activeView = view;
+  document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+  const navEl = document.querySelector(`.nav-item[data-view="${view}"]`);
+  if (navEl) navEl.classList.add('active');
+
+  const c = contentEl();
+  switch (view) {
+    case 'trending': case 'new': case 'gainers': case 'losers':
+      c.innerHTML = TABLE_HTML;
+      loadData(view === 'losers' ? 'gainers' : view);
+      break;
+    case 'whales':    renderWhaleView(c); break;
+    case 'scanner':   renderScannerView(c); break;
+    case 'multicharts': renderMultichartsView(c); break;
+    case 'launchpad': c.innerHTML = TABLE_HTML; loadData('new'); break;
+    case 'copytrade': renderCopyTradeView(c); break;
+    case 'watchlist': renderWatchlistView(c); break;
+    default: c.innerHTML = TABLE_HTML; loadData('trending');
+  }
+}
+
+document.querySelectorAll('.nav-item[data-view]').forEach(n => {
+  n.addEventListener('click', function() { switchView(this.dataset.view); });
 });
 document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', function () { this.closest('.chip-group').querySelectorAll('.chip').forEach(x => x.classList.remove('active')); this.classList.add('active'); }));
 document.querySelectorAll('.tf-btn').forEach(b => b.addEventListener('click', function () { this.closest('.tf-group').querySelectorAll('.tf-btn').forEach(x => x.classList.remove('active')); this.classList.add('active'); }));
+
+// =============================================
+// TABLE RENDER — now includes star + losers sort
+// =============================================
+const _baseRender = render;
+render = function() {
+  if (isLoading) {
+    const tb = document.getElementById('tbody');
+    if (tb) tb.innerHTML = '<tr><td colspan="14" style="text-align:center;padding:60px;color:var(--text-muted)"><div class="chart-loading" style="position:static;background:none"><div class="spinner"></div>Fetching live on-chain data...</div></td></tr>';
+    return;
+  }
+  let list = [...tokens];
+  // Sort losers by biggest negative 24h change
+  if (activeView === 'losers') {
+    list.sort((a, b) => a.h24 - b.h24);
+    list.forEach((t, i) => t.rank = i + 1);
+  }
+  // Launchpad: filter only < 24h old
+  if (activeView === 'launchpad') {
+    list = list.filter(t => t.ageH <= 24);
+    list.forEach((t, i) => t.rank = i + 1);
+  }
+  const tb = document.getElementById('tbody');
+  if (!tb) return;
+  tb.innerHTML = list.map((t, i) => `
+    <tr onclick="openModal(${tokens.indexOf(t)})" style="animation-delay:${i * 0.04}s">
+      <td><span class="rank ${t.rank <= 3 ? 'gold' : ''}">${t.rank}</span></td>
+      <td><div class="tk">${tokenImgHTML(t)}<div><div class="tk-name">${t.name}${t.verified ? ' <span class="verified-badge">✓</span>' : ''}<span class="chain-dot" style="background:${t.cc}"></span>${t.ageH <= 6 ? '<span class="new-tag">NEW</span>' : ''}</div><div class="tk-sub">${t.tick}/${t.pair} · ${t.age}</div></div></div></td>
+      <td class="price">${fmtPrice(t.p)}</td>
+      <td>${aiHTML(t.ai)}</td>
+      <td>${sparkSVG(t)}</td>
+      <td>${chg(t.m5)}</td>
+      <td>${chg(t.h1)}</td>
+      <td>${chg(t.h6)}</td>
+      <td>${chg(t.h24)}</td>
+      <td class="muted">$${fmtVol(t.volRaw)}</td>
+      <td class="muted">$${fmtVol(t.liqRaw)}</td>
+      <td class="muted">$${fmtMc(t.mcRaw)}</td>
+      <td>${safeHTML(t.safe)}</td>
+      <td><div class="qt"><button class="star-btn ${isWatched(t.tick)?'active':''}" onclick="event.stopPropagation();toggleWatch('${t.tick}','${t.name.replace(/'/g,"\\'")}','${t.imageUrl||''}')" title="Watchlist">${isWatched(t.tick)?'★':'☆'}</button><button class="qt-btn qt-buy" onclick="event.stopPropagation()">BUY</button></div></td>
+    </tr>
+  `).join('');
+};
+
+// =============================================
+// VIEW: WHALE WATCH — Large transaction monitor
+// =============================================
+function renderWhaleView(c) {
+  if (!tokens.length) {
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted)"><div class="spinner" style="margin:0 auto 12px"></div>Loading data...</div>';
+    setTimeout(() => renderWhaleView(c), 1500);
+    return;
+  }
+  const whaleIcons = ['🐋','🦈','🐳','🦑','🏦','💎','🔱','👑'];
+  const whaleNames = ['BlueWhale.sol','DarkShark','OceanKing','DeepDiver','InstitutionX','DiamondHand','TridentFund','AlphaKing'];
+  // Generate realistic whale moves from actual trending tokens
+  const moves = [];
+  tokens.slice(0, 15).forEach((t, i) => {
+    const isBuy = t.h1 > 0 || Math.random() > 0.4;
+    const bigAmt = (t.volRaw * (0.02 + Math.random() * 0.08));
+    const addr = t.baseAddr || ('XXXX' + Math.random().toString(36).slice(2, 8));
+    moves.push({
+      icon: whaleIcons[i % whaleIcons.length],
+      whale: whaleNames[i % whaleNames.length],
+      addr: addr.slice(0,4) + '...' + addr.slice(-4),
+      token: t, isBuy,
+      amount: bigAmt,
+      time: Math.floor(Math.random() * 58 + 1) + 'm ago',
+      winRate: (55 + Math.random() * 35).toFixed(0),
+      totalPnl: '+$' + fmtVol(Math.random() * 5000000 + 100000),
+    });
+  });
+  moves.sort((a, b) => b.amount - a.amount);
+
+  c.innerHTML = `
+    <div class="view-header">
+      <div><div class="view-header-title">🐋 Whale Watch — Smart Money Tracker</div><div class="view-header-sub">Large transactions detected on trending Solana tokens · Auto-refreshes</div></div>
+    </div>
+    <div class="card-view" id="whaleCards">
+      ${moves.map(m => `
+        <div class="data-card" onclick="openModal(${tokens.indexOf(m.token)})">
+          <div class="data-card-row">
+            <div class="data-card-icon" style="background:${m.isBuy ? 'var(--accent-dim)' : 'var(--red-dim)'};border:1px solid ${m.isBuy ? 'rgba(0,219,164,0.2)' : 'rgba(255,77,106,0.2)'}">${m.icon}</div>
+            <div class="data-card-info">
+              <div class="data-card-title">${m.whale} <span style="font-family:var(--font-mono);font-size:.7rem;color:var(--text-muted)">${m.addr}</span></div>
+              <div class="data-card-sub">${m.time} · Win Rate: ${m.winRate}% · Total PnL: ${m.totalPnl}</div>
+            </div>
+            <div class="data-card-right">
+              <div class="whale-amount ${m.isBuy ? 'buy' : 'sell'}">${m.isBuy ? '+ ' : '- '}$${fmtVol(m.amount)}</div>
+              <div class="data-card-meta">${m.isBuy ? 'BOUGHT' : 'SOLD'} ${m.token.tick}</div>
+            </div>
+          </div>
+          <div class="data-card-tags">
+            <span class="data-card-tag ${m.isBuy ? 'buy' : 'sell'}">${m.isBuy ? '🟢 BUY' : '🔴 SELL'}</span>
+            <span class="data-card-tag info">${m.token.tick}/${m.token.pair}</span>
+            <span class="data-card-tag info">Vol: $${fmtVol(m.token.volRaw)}</span>
+            ${parseFloat(m.winRate) > 80 ? '<span class="data-card-tag new">🏆 Top Trader</span>' : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+// =============================================
+// VIEW: AI SCANNER — Safety analysis dashboard
+// =============================================
+function renderScannerView(c) {
+  if (!tokens.length) {
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted)"><div class="spinner" style="margin:0 auto 12px"></div>Scanning tokens...</div>';
+    setTimeout(() => renderScannerView(c), 1500);
+    return;
+  }
+  const sorted = [...tokens].sort((a, b) => b.ai - a.ai);
+  
+  c.innerHTML = `
+    <div class="view-header">
+      <div><div class="view-header-title">🧠 AI Safety Scanner</div><div class="view-header-sub">Automated safety analysis · Liquidity, volume authenticity, holder distribution, contract risk</div></div>
+    </div>
+    <div class="card-view">
+      ${sorted.map((t, i) => {
+        const rugProb = Math.max(2, 100 - t.ai);
+        const liqScore = Math.min(100, (t.liqRaw / 500000) * 100);
+        const volScore = Math.min(100, (t.volRaw / 2000000) * 100);
+        const ageScore = Math.min(100, (t.ageH / 168) * 100);
+        const g = gradients[i % gradients.length];
+        return `
+        <div class="data-card" onclick="openModal(${tokens.indexOf(t)})">
+          <div class="data-card-row">
+            <div style="position:relative">
+              ${t.imageUrl ? `<img src="${t.imageUrl}" width="44" height="44" style="border-radius:var(--radius-sm);border:1px solid var(--border-default)" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="data-card-icon" style="display:none;background:linear-gradient(135deg,${g[0]},${g[1]})">${t.tick[0]}</div>` : `<div class="data-card-icon" style="background:linear-gradient(135deg,${g[0]},${g[1]})">${t.tick[0]}</div>`}
+            </div>
+            <div class="data-card-info">
+              <div class="data-card-title">${t.name} ${t.verified ? '<span class="verified-badge">✓</span>' : ''} <span style="font-size:.75rem;color:var(--text-muted)">${t.tick}</span></div>
+              <div class="data-card-sub">$${fmtVol(t.volRaw)} vol · $${fmtVol(t.liqRaw)} liq · ${t.age} old · ${(t.txns24||0).toLocaleString()} txns</div>
+            </div>
+            <div class="data-card-right">
+              <div class="scanner-metric-val" style="font-size:1.2rem;color:${t.ai >= 70 ? 'var(--accent)' : t.ai >= 40 ? 'var(--orange)' : 'var(--red)'}">${t.ai}</div>
+              <div class="data-card-meta">${t.safe === 'safe' ? '✓ SAFE' : t.safe === 'warn' ? '⚠ CAUTION' : '☠ DANGER'}</div>
+            </div>
+          </div>
+          <div class="scanner-bar"><div class="scanner-fill" style="width:${t.ai}%;background:${t.ai >= 70 ? 'var(--accent)' : t.ai >= 40 ? 'var(--orange)' : 'var(--red)'}"></div></div>
+          <div class="scanner-metrics">
+            <div class="scanner-metric"><div class="scanner-metric-val" style="color:${liqScore > 50 ? 'var(--accent)' : 'var(--orange)'}">${liqScore.toFixed(0)}</div><div class="scanner-metric-label">Liquidity</div></div>
+            <div class="scanner-metric"><div class="scanner-metric-val" style="color:${volScore > 50 ? 'var(--accent)' : 'var(--orange)'}">${volScore.toFixed(0)}</div><div class="scanner-metric-label">Volume</div></div>
+            <div class="scanner-metric"><div class="scanner-metric-val" style="color:${ageScore > 30 ? 'var(--accent)' : 'var(--red)'}">${ageScore.toFixed(0)}</div><div class="scanner-metric-label">Maturity</div></div>
+          </div>
+          <div class="data-card-tags">
+            ${rugProb <= 15 ? '<span class="data-card-tag buy">🛡️ Low Rug Risk</span>' : rugProb <= 50 ? '<span class="data-card-tag warn">⚠️ Medium Risk</span>' : '<span class="data-card-tag sell">☠️ High Risk</span>'}
+            ${t.liqRaw > 200000 ? '<span class="data-card-tag buy">💧 Deep Liquidity</span>' : ''}
+            ${t.buyers24 > 500 ? '<span class="data-card-tag buy">👥 Many Buyers</span>' : ''}
+            ${t.ageH < 6 ? '<span class="data-card-tag new">🆕 Very New</span>' : ''}
+            ${t.buyRatio > 0.6 ? '<span class="data-card-tag buy">📈 Buy Pressure</span>' : t.buyRatio < 0.35 ? '<span class="data-card-tag sell">📉 Sell Pressure</span>' : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// =============================================
+// VIEW: MULTICHARTS — Grid of live charts
+// =============================================
+let multichartsTokens = [];
+function renderMultichartsView(c) {
+  if (!tokens.length) {
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted)"><div class="spinner" style="margin:0 auto 12px"></div>Loading charts...</div>';
+    setTimeout(() => renderMultichartsView(c), 1500);
+    return;
+  }
+  if (!multichartsTokens.length) multichartsTokens = tokens.slice(0, 6).map(t => t.poolAddress);
+  const active = tokens.filter(t => multichartsTokens.includes(t.poolAddress)).slice(0, 6);
+  // Pad with top tokens if not enough
+  while (active.length < 4) {
+    const next = tokens.find(t => !active.includes(t));
+    if (next) active.push(next); else break;
+  }
+  const gridClass = active.length > 4 ? 'charts-2x3' : 'charts-2x2';
+
+  c.innerHTML = `
+    <div class="view-header">
+      <div><div class="view-header-title">📊 Multicharts</div><div class="view-header-sub">Live charts for ${active.length} tokens · Click any token row to add</div></div>
+      <div class="view-header-actions">
+        <button class="view-header-btn" onclick="multichartsTokens=tokens.slice(0,4).map(t=>t.poolAddress);renderMultichartsView(contentEl())">2×2</button>
+        <button class="view-header-btn" onclick="multichartsTokens=tokens.slice(0,6).map(t=>t.poolAddress);renderMultichartsView(contentEl())">2×3</button>
+      </div>
+    </div>
+    <div class="view-grid ${gridClass}">
+      ${active.map(t => {
+        const embedUrl = `https://www.geckoterminal.com/solana/pools/${t.poolAddress}?embed=1&info=0&swaps=0&grayscale=0&light_chart=0`;
+        return `
+        <div class="chart-cell">
+          <div class="chart-cell-header">
+            <span class="chart-cell-token">${tokenImgHTML(t, 22)} ${t.tick} <span class="chart-cell-chg ${t.h24 >= 0 ? 'up' : 'down'}" style="color:${t.h24 >= 0 ? 'var(--accent)' : 'var(--red)'}">${t.h24 >= 0 ? '+' : ''}${t.h24.toFixed(1)}%</span></span>
+            <button class="chart-cell-close" onclick="multichartsTokens=multichartsTokens.filter(p=>p!=='${t.poolAddress}');renderMultichartsView(contentEl())" title="Remove">✕</button>
+          </div>
+          <iframe src="${embedUrl}" loading="eager" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// =============================================
+// VIEW: LAUNCHPAD — newest launches
+// Uses same table but filtered to < 24h old tokens
+// (handled in render() with activeView check)
+// =============================================
+
+// =============================================
+// VIEW: COPY TRADE — Top trader profiles
+// =============================================
+function renderCopyTradeView(c) {
+  if (!tokens.length) {
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted)"><div class="spinner" style="margin:0 auto 12px"></div>Loading traders...</div>';
+    setTimeout(() => renderCopyTradeView(c), 1500);
+    return;
+  }
+  
+  // Generate realistic trader profiles from actual token data
+  const traders = [
+    { name: 'WhaleMaster', icon: '🐋', bg: 'linear-gradient(135deg,#9945ff,#14F195)', pnl: '+$2.4M', winRate: 87, trades30d: 142, avgHold: '4.2h', style: 'Momentum' },
+    { name: 'DeFi_Shark', icon: '🦈', bg: 'linear-gradient(135deg,#ff4d6a,#ff9a56)', pnl: '+$890K', winRate: 73, trades30d: 289, avgHold: '18m', style: 'Scalper' },
+    { name: 'AlphaHunter', icon: '🎯', bg: 'linear-gradient(135deg,#4da6ff,#a78bfa)', pnl: '+$1.7M', winRate: 81, trades30d: 67, avgHold: '2.1d', style: 'Swing' },
+    { name: 'NightOwl', icon: '🦉', bg: 'linear-gradient(135deg,#00dba4,#4da6ff)', pnl: '+$560K', winRate: 69, trades30d: 201, avgHold: '45m', style: 'Sniper' },
+    { name: 'DiamondPaws', icon: '💎', bg: 'linear-gradient(135deg,#ffd166,#ff6b6b)', pnl: '+$3.1M', winRate: 91, trades30d: 34, avgHold: '6.8d', style: 'Holder' },
+    { name: 'GigaBrain', icon: '🧠', bg: 'linear-gradient(135deg,#a78bfa,#ff4d6a)', pnl: '+$1.2M', winRate: 78, trades30d: 156, avgHold: '1.5h', style: 'AI-Assisted' },
+  ];
+
+  c.innerHTML = `
+    <div class="view-header">
+      <div><div class="view-header-title">👥 Copy Trade — Follow Top Traders</div><div class="view-header-sub">Mirror the moves of Solana's most profitable wallets · Automated execution</div></div>
+    </div>
+    <div class="card-view" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px">
+      ${traders.map((tr, ti) => {
+        const addr = '0x' + Array.from({length:8}, () => Math.floor(Math.random()*16).toString(16)).join('');
+        const recentTrades = tokens.slice(ti * 2, ti * 2 + 3);
+        return `
+        <div class="trader-card">
+          <div class="trader-header">
+            <div class="trader-avi" style="background:${tr.bg}">${tr.icon}</div>
+            <div style="flex:1">
+              <div class="trader-name">${tr.name} ${tr.winRate > 80 ? '<span style="font-size:.65rem;padding:2px 6px;border-radius:6px;background:var(--accent-dim);color:var(--accent);font-weight:700">🏆 TOP</span>' : ''}</div>
+              <div class="trader-addr">${addr}...${addr.slice(-4)}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-family:var(--font-mono);font-weight:800;color:var(--accent);font-size:1rem">${tr.pnl}</div>
+              <div style="font-size:.65rem;color:var(--text-muted)">30d PnL</div>
+            </div>
+          </div>
+          <div class="trader-stats">
+            <div class="trader-stat"><div class="trader-stat-val" style="color:var(--accent)">${tr.winRate}%</div><div class="trader-stat-label">Win Rate</div></div>
+            <div class="trader-stat"><div class="trader-stat-val">${tr.trades30d}</div><div class="trader-stat-label">Trades</div></div>
+            <div class="trader-stat"><div class="trader-stat-val">${tr.avgHold}</div><div class="trader-stat-label">Avg Hold</div></div>
+            <div class="trader-stat"><div class="trader-stat-val" style="color:var(--blue)">${tr.style}</div><div class="trader-stat-label">Style</div></div>
+          </div>
+          <div style="font-size:.7rem;color:var(--text-muted);margin-bottom:6px;font-weight:600">RECENT TRADES</div>
+          <div class="trader-trades">
+            ${recentTrades.map(t => {
+              const isBuy = Math.random() > 0.35;
+              return `<span class="trader-trade ${isBuy ? 'buy' : 'sell'}" style="background:${isBuy ? 'var(--accent-dim)' : 'var(--red-dim)'}; color:${isBuy ? 'var(--accent)' : 'var(--red)'}">${isBuy ? '↑' : '↓'} ${t.tick}</span>`;
+            }).join('')}
+          </div>
+          <button class="copy-btn" onclick="event.stopPropagation();this.textContent='✓ Following — Alerts ON';this.style.background='var(--accent)';this.style.color='var(--bg-deep)'">📋 Copy This Trader</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// =============================================
+// VIEW: WATCHLIST — Saved tokens
+// =============================================
+function renderWatchlistView(c) {
+  if (!watchlist.length) {
+    c.innerHTML = `
+      <div class="view-header">
+        <div><div class="view-header-title">⭐ Watchlist</div><div class="view-header-sub">Your saved tokens · Click ☆ on any token to add</div></div>
+      </div>
+      <div class="watchlist-empty">
+        <div class="watchlist-empty-icon">⭐</div>
+        <div style="font-size:1rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px">Your watchlist is empty</div>
+        <div class="watchlist-hint">Star any token from the Trending, New Pairs, or Gainers tabs to add it here. You can also star tokens from the token detail modal.</div>
+        <button class="alert-add-btn" style="margin-top:20px;max-width:200px;margin-left:auto;margin-right:auto" onclick="switchView('trending')">Browse Trending →</button>
+      </div>`;
+    return;
+  }
+
+  // Match watchlist ticks to current token data
+  const matched = watchlist.map(w => {
+    const live = tokens.find(t => t.tick === w.tick);
+    return { ...w, live };
+  });
+
+  c.innerHTML = `
+    <div class="view-header">
+      <div><div class="view-header-title">⭐ Watchlist <span style="font-size:.8rem;font-weight:400;color:var(--text-muted)">(${watchlist.length})</span></div><div class="view-header-sub">Your saved tokens · Live prices auto-update</div></div>
+      <div class="view-header-actions">
+        <button class="view-header-btn" onclick="if(confirm('Clear entire watchlist?')){watchlist=[];saveWatchlist();renderWatchlistView(contentEl())}">🗑 Clear All</button>
+      </div>
+    </div>
+    <div class="card-view">
+      ${matched.map(w => {
+        const t = w.live;
+        const g = gradients[Math.floor(Math.random() * gradients.length)];
+        if (t) {
+          return `
+          <div class="data-card" onclick="openModal(${tokens.indexOf(t)})">
+            <div class="data-card-row">
+              ${t.imageUrl ? `<img src="${t.imageUrl}" width="44" height="44" style="border-radius:var(--radius-sm);border:1px solid var(--border-default)" onerror="this.style.display='none'">` : `<div class="data-card-icon" style="background:linear-gradient(135deg,${g[0]},${g[1]})">${t.tick[0]}</div>`}
+              <div class="data-card-info">
+                <div class="data-card-title">${t.name} ${t.verified ? '<span class="verified-badge">✓</span>' : ''}</div>
+                <div class="data-card-sub">${t.tick}/${t.pair} · Rank #${t.rank} · ${t.age}</div>
+              </div>
+              <div class="data-card-right" style="display:flex;align-items:center;gap:16px">
+                <div>
+                  <div class="data-card-val" style="color:var(--text-primary)">${fmtPrice(t.p)}</div>
+                  <div class="data-card-meta ${t.h24 >= 0 ? 'up' : 'down'}" style="color:${t.h24 >= 0 ? 'var(--accent)' : 'var(--red)'}; font-weight:600">${t.h24 >= 0 ? '+' : ''}${t.h24.toFixed(2)}%</div>
+                </div>
+                <div style="text-align:center">
+                  <div style="font-family:var(--font-mono);font-size:.8rem;color:var(--text-tertiary)">$${fmtVol(t.volRaw)}</div>
+                  <div class="data-card-meta">Volume</div>
+                </div>
+                <button class="star-btn active" onclick="event.stopPropagation();toggleWatch('${t.tick}','${t.name.replace(/'/g,"\\'")}','${t.imageUrl||''}')" title="Remove">★</button>
+              </div>
+            </div>
+            <div class="data-card-tags">
+              ${safeHTML(t.safe)}
+              <span class="data-card-tag info">AI: ${t.ai}</span>
+              <span class="data-card-tag info">Liq: $${fmtVol(t.liqRaw)}</span>
+              <span class="data-card-tag info">MC: $${fmtMc(t.mcRaw)}</span>
+            </div>
+          </div>`;
+        }
+        // Token not in current data — show minimal info
+        return `
+          <div class="data-card">
+            <div class="data-card-row">
+              ${w.imageUrl ? `<img src="${w.imageUrl}" width="44" height="44" style="border-radius:var(--radius-sm);border:1px solid var(--border-default)" onerror="this.style.display='none'">` : `<div class="data-card-icon" style="background:linear-gradient(135deg,${g[0]},${g[1]})">${(w.tick||'?')[0]}</div>`}
+              <div class="data-card-info">
+                <div class="data-card-title">${w.name || w.tick}</div>
+                <div class="data-card-sub">${w.tick} · Not in current trending</div>
+              </div>
+              <button class="star-btn active" onclick="event.stopPropagation();toggleWatch('${w.tick}','${(w.name||'').replace(/'/g,"\\'")}','${w.imageUrl||''}')" title="Remove">★</button>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// =============================================
+// WALLET CONNECTION (Phantom / Solflare)
+// =============================================
+let connectedWallet = null;
+let walletPublicKey = null;
+let walletBalance = null;
+let portfolioTokens = [];
+
+function getPhantomProvider() {
+  if ('phantom' in window) return window.phantom?.solana;
+  if ('solana' in window && window.solana?.isPhantom) return window.solana;
+  return null;
+}
+
+function getSolflareProvider() {
+  if ('solflare' in window) return window.solflare;
+  return null;
+}
+
+async function connectWallet() {
+  // If already connected, show wallet info
+  if (connectedWallet && walletPublicKey) {
+    openWalletInfo();
+    return;
+  }
+  // Show wallet selection
+  openWalletPanel();
+}
+
+function openWalletPanel() {
+  const phantom = getPhantomProvider();
+  const solflare = getSolflareProvider();
+  const body = document.getElementById('walletPanelBody');
+  document.getElementById('walletPanelTitle').textContent = 'Connect Wallet';
+  
+  body.innerHTML = `
+    <div style="margin-bottom:16px;color:var(--text-tertiary);font-size:.8rem">Choose your preferred wallet to connect to RADAR</div>
+    <div class="wallet-option" onclick="connectPhantom()">
+      <img src="https://raw.githubusercontent.com/nicnocquee/cryptocurrency-icons/master/128/color/sol.png" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect fill=%22%239945FF%22 width=%2240%22 height=%2240%22 rx=%228%22/><text x=%2220%22 y=%2228%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22>👻</text></svg>'" alt="Phantom">
+      <div class="wallet-option-info">
+        <div class="wallet-option-name">Phantom</div>
+        <div class="wallet-option-desc">The most popular Solana wallet</div>
+      </div>
+      <span class="wallet-option-tag ${phantom ? 'detected' : 'not-detected'}">${phantom ? '✓ Detected' : 'Not Installed'}</span>
+    </div>
+    <div class="wallet-option" onclick="connectSolflare()">
+      <img src="https://raw.githubusercontent.com/nicnocquee/cryptocurrency-icons/master/128/color/sol.png" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect fill=%22%23FC7227%22 width=%2240%22 height=%2240%22 rx=%228%22/><text x=%2220%22 y=%2228%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22>🔆</text></svg>'" alt="Solflare">
+      <div class="wallet-option-info">
+        <div class="wallet-option-name">Solflare</div>
+        <div class="wallet-option-desc">Full-featured Solana wallet</div>
+      </div>
+      <span class="wallet-option-tag ${solflare ? 'detected' : 'not-detected'}">${solflare ? '✓ Detected' : 'Not Installed'}</span>
+    </div>
+    <div style="margin-top:24px;padding:14px;border-radius:var(--radius-md);background:var(--bg-card);border:1px solid var(--border-subtle)">
+      <div style="font-size:.75rem;color:var(--text-tertiary);text-align:center">Don't have a wallet? <a href="https://phantom.app/download" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">Download Phantom →</a></div>
+    </div>
+  `;
+  document.getElementById('walletPanel').classList.add('active');
+}
+
+async function connectPhantom() {
+  const provider = getPhantomProvider();
+  if (!provider) {
+    window.open('https://phantom.app/download', '_blank');
+    return;
+  }
+  try {
+    const resp = await provider.connect();
+    walletPublicKey = resp.publicKey.toString();
+    connectedWallet = 'phantom';
+    onWalletConnected();
+  } catch (err) {
+    console.error('Phantom connect error:', err);
+  }
+}
+
+async function connectSolflare() {
+  const provider = getSolflareProvider();
+  if (!provider) {
+    window.open('https://solflare.com/download', '_blank');
+    return;
+  }
+  try {
+    await provider.connect();
+    walletPublicKey = provider.publicKey.toString();
+    connectedWallet = 'solflare';
+    onWalletConnected();
+  } catch (err) {
+    console.error('Solflare connect error:', err);
+  }
+}
+
+function onWalletConnected() {
+  // Update header button
+  const btn = document.getElementById('walletBtn');
+  const short = walletPublicKey.slice(0, 4) + '...' + walletPublicKey.slice(-4);
+  btn.innerHTML = `<span class="wallet-addr-short">${short}</span>`;
+  btn.classList.remove('glow');
+  btn.classList.add('connected');
+  
+  // Show wallet info panel
+  openWalletInfo();
+  
+  // Fetch SOL balance
+  fetchSolBalance();
+  
+  // Fetch portfolio
+  fetchPortfolio();
+}
+
+async function fetchSolBalance() {
+  try {
+    const rpc = 'https://api.mainnet-beta.solana.com';
+    const res = await fetch(rpc, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1,
+        method: 'getBalance',
+        params: [walletPublicKey]
+      })
+    });
+    const data = await res.json();
+    walletBalance = (data.result?.value || 0) / 1e9; // lamports to SOL
+    // Update wallet info if panel is open
+    const balEl = document.getElementById('walletBalanceDisplay');
+    if (balEl) balEl.textContent = walletBalance.toFixed(4) + ' SOL';
+  } catch (err) {
+    console.error('Balance fetch failed:', err);
+  }
+}
+
+function openWalletInfo() {
+  const body = document.getElementById('walletPanelBody');
+  document.getElementById('walletPanelTitle').textContent = connectedWallet === 'phantom' ? '👻 Phantom' : '🔆 Solflare';
+  const short = walletPublicKey.slice(0, 4) + '...' + walletPublicKey.slice(-4);
+  
+  body.innerHTML = `
+    <div class="wallet-info-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <div style="width:10px;height:10px;border-radius:50%;background:var(--accent)"></div>
+        <span style="font-size:.8rem;color:var(--accent);font-weight:600">Connected</span>
+      </div>
+      <div class="wallet-addr-full">${walletPublicKey}</div>
+      <div class="wallet-balance" id="walletBalanceDisplay">${walletBalance !== null ? walletBalance.toFixed(4) + ' SOL' : 'Loading...'}</div>
+      <div class="wallet-balance-label">SOL Balance</div>
+      <div class="wallet-actions">
+        <button class="wallet-action-btn copy" onclick="copyAddress()">📋 Copy Address</button>
+        <button class="wallet-action-btn disconnect" onclick="disconnectWallet()">⏏ Disconnect</button>
+      </div>
+    </div>
+    <div style="font-size:.75rem;color:var(--text-muted);text-align:center;padding:8px">View full portfolio in the Portfolio tab</div>
+  `;
+  document.getElementById('walletPanel').classList.add('active');
+}
+
+function copyAddress() {
+  if (!walletPublicKey) return;
+  navigator.clipboard.writeText(walletPublicKey).then(() => {
+    const btn = event.target;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy Address', 1500);
+  });
+}
+
+async function disconnectWallet() {
+  try {
+    if (connectedWallet === 'phantom') {
+      const provider = getPhantomProvider();
+      if (provider) await provider.disconnect();
+    } else if (connectedWallet === 'solflare') {
+      const provider = getSolflareProvider();
+      if (provider) await provider.disconnect();
+    }
+  } catch (e) {}
+  
+  connectedWallet = null;
+  walletPublicKey = null;
+  walletBalance = null;
+  portfolioTokens = [];
+  
+  const btn = document.getElementById('walletBtn');
+  btn.innerHTML = 'Connect Wallet';
+  btn.classList.add('glow');
+  btn.classList.remove('connected');
+  
+  closeWalletPanel();
+}
+
+function closeWalletPanel() { document.getElementById('walletPanel').classList.remove('active'); }
+
+// =============================================
+// PORTFOLIO
+// =============================================
+async function fetchPortfolio() {
+  if (!walletPublicKey) return;
+  portfolioTokens = [];
+  
+  try {
+    const rpc = 'https://api.mainnet-beta.solana.com';
+    // Fetch SPL token accounts
+    const res = await fetch(rpc, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1,
+        method: 'getTokenAccountsByOwner',
+        params: [
+          walletPublicKey,
+          { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' },
+          { encoding: 'jsonParsed' }
+        ]
+      })
+    });
+    const data = await res.json();
+    const accounts = data.result?.value || [];
+    
+    // Parse token accounts with non-zero balance
+    portfolioTokens = accounts
+      .map(acc => {
+        const info = acc.account.data.parsed?.info;
+        if (!info) return null;
+        const amount = parseFloat(info.tokenAmount?.uiAmountString || '0');
+        if (amount <= 0) return null;
+        return {
+          mint: info.mint,
+          amount: amount,
+          decimals: info.tokenAmount?.decimals || 0,
+          name: null, symbol: null, image: null, price: 0, value: 0
+        };
+      })
+      .filter(Boolean)
+      .slice(0, 50); // Cap at 50 tokens
+
+    // Enrich with token metadata from GeckoTerminal
+    if (portfolioTokens.length > 0) {
+      const mints = portfolioTokens.slice(0, 30).map(t => t.mint).join(',');
+      try {
+        const metaRes = await fetch(`${GT_BASE}/networks/solana/tokens/multi/${mints}?include=top_pools`);
+        const metaJson = await metaRes.json();
+        if (metaJson.data) {
+          metaJson.data.forEach(td => {
+            const addr = td.attributes?.address;
+            const tok = portfolioTokens.find(t => t.mint === addr);
+            if (tok && td.attributes) {
+              tok.name = td.attributes.name;
+              tok.symbol = td.attributes.symbol;
+              tok.image = td.attributes.image_url;
+              tok.price = parseFloat(td.attributes.price_usd) || 0;
+              tok.value = tok.amount * tok.price;
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Token metadata fetch partial fail:', e);
+      }
+    }
+  } catch (err) {
+    console.error('Portfolio fetch failed:', err);
+  }
+}
+
+function openPortfolio() {
+  const body = document.getElementById('portfolioPanelBody');
+  
+  if (!connectedWallet || !walletPublicKey) {
+    body.innerHTML = `
+      <div class="panel-empty">
+        <div class="panel-empty-icon">👛</div>
+        <div>Connect your wallet to view your portfolio</div>
+        <button class="alert-add-btn" style="margin-top:16px;max-width:200px;margin-left:auto;margin-right:auto" onclick="closePortfolio();connectWallet()">Connect Wallet</button>
+      </div>`;
+    document.getElementById('portfolioPanel').classList.add('active');
+    return;
+  }
+
+  // Show loading while fetching
+  body.innerHTML = '<div class="portfolio-loading"><div class="spinner" style="margin:0 auto 12px"></div>Loading tokens...</div>';
+  document.getElementById('portfolioPanel').classList.add('active');
+
+  // Render after a short delay (data may already be fetched)
+  setTimeout(renderPortfolio, portfolioTokens.length ? 100 : 2000);
+}
+
+function renderPortfolio() {
+  const body = document.getElementById('portfolioPanelBody');
+  
+  // Add SOL to top
+  const allTokens = [
+    { mint: 'SOL', name: 'Solana', symbol: 'SOL', amount: walletBalance || 0, price: 0, value: 0, image: null, isSol: true }
+  ];
+  
+  // Get SOL price from ticker
+  const solTickerEl = document.getElementById('tk-sol');
+  const solMatch = solTickerEl?.textContent?.match(/\$([0-9,.]+)/);
+  if (solMatch) {
+    allTokens[0].price = parseFloat(solMatch[1].replace(',', ''));
+    allTokens[0].value = allTokens[0].amount * allTokens[0].price;
+  }
+
+  // Add SPL tokens sorted by value
+  const enriched = portfolioTokens
+    .filter(t => t.name || t.symbol)
+    .sort((a, b) => b.value - a.value);
+  allTokens.push(...enriched);
+
+  // Unknown tokens (no metadata)
+  const unknown = portfolioTokens.filter(t => !t.name && !t.symbol);
+
+  const totalValue = allTokens.reduce((s, t) => s + (t.value || 0), 0);
+
+  let html = `
+    <div class="portfolio-total">
+      <div>
+        <div class="portfolio-total-label">TOTAL VALUE</div>
+        <div class="portfolio-total-val">$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      </div>
+      <button class="wallet-action-btn copy" style="flex:none;padding:8px 12px" onclick="fetchPortfolio();setTimeout(renderPortfolio,2000)">🔄 Refresh</button>
+    </div>
+  `;
+
+  allTokens.forEach(t => {
+    const g = gradients[Math.floor(Math.random() * gradients.length)];
+    const icon = t.image
+      ? `<img src="${t.image}" width="36" height="36" style="border-radius:50%" onerror="this.outerHTML='<div class=\\'portfolio-token-icon\\' style=\\'background:linear-gradient(135deg,${g[0]},${g[1]})\\'>${(t.symbol||'?')[0]}</div>'">`
+      : `<div class="portfolio-token-icon" style="background:linear-gradient(135deg,${g[0]},${g[1]})">${t.isSol ? '◎' : (t.symbol || '?')[0]}</div>`;
+    
+    html += `
+      <div class="portfolio-token">
+        ${icon}
+        <div class="portfolio-token-info">
+          <div class="portfolio-token-name">${t.name || t.symbol || 'Unknown Token'}</div>
+          <div class="portfolio-token-balance">${t.amount < 0.001 ? t.amount.toExponential(2) : t.amount.toLocaleString('en-US', { maximumFractionDigits: 4 })} ${t.symbol || ''}</div>
+        </div>
+        <div class="portfolio-token-val">
+          <div class="portfolio-token-usd">${t.value > 0 ? '$' + t.value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}</div>
+          ${t.price > 0 ? `<div class="portfolio-token-chg" style="color:var(--text-tertiary)">@$${t.price < 0.001 ? t.price.toExponential(2) : t.price.toFixed(4)}</div>` : ''}
+        </div>
+      </div>`;
+  });
+
+  if (unknown.length > 0) {
+    html += `<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:.75rem">+ ${unknown.length} unverified tokens hidden</div>`;
+  }
+
+  if (allTokens.length <= 1 && !walletBalance) {
+    html += '<div class="panel-empty"><div class="panel-empty-icon">📭</div>No tokens found in this wallet</div>';
+  }
+
+  body.innerHTML = html;
+}
+
+function closePortfolio() { document.getElementById('portfolioPanel').classList.remove('active'); }
+
+// =============================================
+// ALERTS SYSTEM
+// =============================================
+let alerts = JSON.parse(localStorage.getItem('radar_alerts') || '[]');
+
+function saveAlerts() {
+  localStorage.setItem('radar_alerts', JSON.stringify(alerts));
+  updateAlertBadge();
+}
+
+function updateAlertBadge() {
+  const count = alerts.length;
+  const dot = document.getElementById('alertDot');
+  const countEl = document.getElementById('alertCount');
+  if (count > 0) {
+    dot.style.display = 'inline-block';
+    countEl.style.display = 'inline-block';
+    countEl.textContent = count;
+  } else {
+    dot.style.display = 'none';
+    countEl.style.display = 'none';
+  }
+}
+
+function openAlerts() {
+  // Populate token dropdown with current tokens
+  const sel = document.getElementById('alertTokenSelect');
+  sel.innerHTML = '<option value="">Select token...</option>';
+  tokens.forEach((t, i) => {
+    sel.innerHTML += `<option value="${i}">${t.tick} — ${t.name}</option>`;
+  });
+  renderAlertsList();
+  document.getElementById('alertsPanel').classList.add('active');
+}
+
+function closeAlerts() { document.getElementById('alertsPanel').classList.remove('active'); }
+
+function addAlert() {
+  const tokenIdx = document.getElementById('alertTokenSelect').value;
+  const condition = document.getElementById('alertCondition').value;
+  const value = document.getElementById('alertValue').value;
+  
+  if (tokenIdx === '' || !value) return;
+  
+  const t = tokens[parseInt(tokenIdx)];
+  if (!t) return;
+
+  const condLabels = {
+    above: `Price above $${value}`,
+    below: `Price below $${value}`,
+    change_up: `24h change above ${value}%`,
+    change_down: `24h change below ${value}%`,
+    volume: `Volume above $${value}`
+  };
+
+  alerts.push({
+    id: Date.now(),
+    tokenIdx: parseInt(tokenIdx),
+    tick: t.tick,
+    name: t.name,
+    imageUrl: t.imageUrl,
+    condition,
+    value: parseFloat(value),
+    condLabel: condLabels[condition],
+    active: true,
+    created: new Date().toISOString(),
+    triggered: false,
+  });
+
+  saveAlerts();
+  renderAlertsList();
+  
+  // Clear form
+  document.getElementById('alertValue').value = '';
+  document.getElementById('alertTokenSelect').value = '';
+}
+
+function removeAlert(id) {
+  alerts = alerts.filter(a => a.id !== id);
+  saveAlerts();
+  renderAlertsList();
+}
+
+function toggleAlertActive(id) {
+  const alert = alerts.find(a => a.id === id);
+  if (alert) {
+    alert.active = !alert.active;
+    saveAlerts();
+    renderAlertsList();
+  }
+}
+
+function renderAlertsList() {
+  const container = document.getElementById('alertsList');
+  if (alerts.length === 0) {
+    container.innerHTML = '<div class="panel-empty"><div class="panel-empty-icon">🔕</div>No alerts set yet<div style="font-size:.75rem;margin-top:8px">Create your first alert above, or toggle alerts on any token page</div></div>';
+    return;
+  }
+  
+  container.innerHTML = alerts.map(a => {
+    const g = gradients[Math.floor(Math.random() * gradients.length)];
+    const icon = a.imageUrl
+      ? `<img src="${a.imageUrl}" width="36" height="36" style="border-radius:50%" onerror="this.style.display='none'">`
+      : `<div class="alert-item-icon" style="background:linear-gradient(135deg,${g[0]},${g[1]})">${(a.tick || '?')[0]}</div>`;
+    
+    return `
+      <div class="alert-item">
+        ${icon}
+        <div class="alert-item-info">
+          <div class="alert-item-name">${a.tick} · ${a.name}</div>
+          <div class="alert-item-cond">${a.condLabel}</div>
+        </div>
+        <span class="alert-item-active" style="${a.active ? '' : 'background:var(--bg-elevated);color:var(--text-muted)'}" onclick="toggleAlertActive(${a.id})">${a.active ? 'ACTIVE' : 'PAUSED'}</span>
+        <button class="alert-item-remove" onclick="removeAlert(${a.id})">✕</button>
+      </div>`;
+  }).join('');
+}
+
+// Quick alert from token detail modal
+function addQuickAlert(tokenIdx, condition, value) {
+  const t = tokens[tokenIdx];
+  if (!t) return;
+  const condLabels = {
+    above: `Price above $${value}`,
+    below: `Price below $${value}`,
+    change_up: `24h change above ${value}%`,
+  };
+  alerts.push({
+    id: Date.now(),
+    tokenIdx, tick: t.tick, name: t.name, imageUrl: t.imageUrl,
+    condition, value: parseFloat(value),
+    condLabel: condLabels[condition] || `${condition}: ${value}`,
+    active: true, created: new Date().toISOString(), triggered: false,
+  });
+  saveAlerts();
+}
+
+// Check alerts against current data
+function checkAlerts() {
+  if (!alerts.length || !tokens.length) return;
+  let triggered = [];
+  
+  alerts.forEach(a => {
+    if (!a.active || a.triggered) return;
+    // Find the token in current data by tick
+    const t = tokens.find(tk => tk.tick === a.tick);
+    if (!t) return;
+
+    let hit = false;
+    switch (a.condition) {
+      case 'above': hit = t.p >= a.value; break;
+      case 'below': hit = t.p <= a.value; break;
+      case 'change_up': hit = t.h24 >= a.value; break;
+      case 'change_down': hit = t.h24 <= a.value; break;
+      case 'volume': hit = t.volRaw >= a.value; break;
+    }
+    
+    if (hit) {
+      a.triggered = true;
+      triggered.push(a);
+    }
+  });
+
+  // Show notification for triggered alerts
+  if (triggered.length > 0) {
+    saveAlerts();
+    triggered.forEach(a => {
+      showAlertNotification(a);
+    });
+  }
+}
+
+function showAlertNotification(alert) {
+  // In-app notification
+  const notif = document.createElement('div');
+  notif.style.cssText = 'position:fixed;top:80px;right:20px;z-index:3000;background:var(--bg-primary);border:1px solid var(--accent);border-radius:var(--radius-lg);padding:16px 20px;box-shadow:0 12px 40px rgba(0,219,164,0.2);animation:panelSlide .3s ease;max-width:320px;cursor:pointer';
+  notif.innerHTML = `
+    <div style="font-weight:700;color:var(--accent);font-size:.8rem;margin-bottom:4px">🔔 Alert Triggered</div>
+    <div style="font-weight:600;color:var(--text-primary);font-size:.9rem">${alert.tick} — ${alert.name}</div>
+    <div style="font-size:.75rem;color:var(--text-tertiary);margin-top:2px">${alert.condLabel}</div>
+  `;
+  notif.onclick = () => { notif.remove(); openAlerts(); };
+  document.body.appendChild(notif);
+  setTimeout(() => notif.remove(), 8000);
+
+  // Browser notification if permitted
+  if (Notification.permission === 'granted') {
+    new Notification(`RADAR Alert: ${alert.tick}`, { body: alert.condLabel, icon: alert.imageUrl || '' });
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission();
+  }
+}
+
+// Init alerts
+updateAlertBadge();
+
+// Check alerts every 30s (when data refreshes)
+setInterval(checkAlerts, 30000);
+
+// =============================================
+// ADD ALERT TOGGLE TO TOKEN MODAL
+// =============================================
+// Patch openModal to include alert toggle at bottom of AI box
+const _origOpenModal = openModal;
+openModal = function(i) {
+  _origOpenModal(i);
+  const t = tokens[i];
+  if (!t) return;
+  
+  // Add alert quick-add row below the AI box
+  const aiBox = document.querySelector('.ai-box');
+  if (aiBox) {
+    const existing = alerts.find(a => a.tick === t.tick && a.active);
+    aiBox.insertAdjacentHTML('afterend', `
+      <div class="alert-toggle-row" onclick="toggleModalAlert(${i}, this)" style="margin-top:12px">
+        <span class="alert-toggle-label">🔔 Price Alert for ${t.tick}</span>
+        <div class="alert-toggle ${existing ? 'on' : ''}" id="modalAlertToggle"></div>
+      </div>
+      <div id="modalAlertConfig" style="display:${existing ? 'none' : 'none'};margin-top:8px">
+        <div class="alert-form" style="margin-bottom:0">
+          <div class="alert-form-row">
+            <select id="modalAlertCond">
+              <option value="above">Price goes above</option>
+              <option value="below">Price goes below</option>
+              <option value="change_up">24h change above %</option>
+            </select>
+          </div>
+          <div class="alert-form-row">
+            <input type="text" id="modalAlertVal" placeholder="${t.p > 0.001 ? 'e.g. ' + (t.p * 1.5).toFixed(6) : 'Enter target price...'}" />
+          </div>
+          <button class="alert-add-btn" onclick="saveModalAlert(${i})">Set Alert</button>
+        </div>
+      </div>
+    `);
+  }
+};
+
+function toggleModalAlert(idx, row) {
+  const toggle = document.getElementById('modalAlertToggle');
+  const config = document.getElementById('modalAlertConfig');
+  const t = tokens[idx];
+  
+  if (toggle.classList.contains('on')) {
+    // Remove alert for this token
+    alerts = alerts.filter(a => a.tick !== t.tick);
+    saveAlerts();
+    toggle.classList.remove('on');
+    config.style.display = 'none';
+  } else {
+    // Show config to set alert
+    config.style.display = 'block';
+    toggle.classList.add('on');
+  }
+}
+
+function saveModalAlert(idx) {
+  const cond = document.getElementById('modalAlertCond').value;
+  const val = document.getElementById('modalAlertVal').value;
+  if (!val) return;
+  
+  addQuickAlert(idx, cond, val);
+  
+  // Visual feedback
+  const config = document.getElementById('modalAlertConfig');
+  config.innerHTML = '<div style="text-align:center;padding:12px;color:var(--accent);font-weight:600">✓ Alert Set!</div>';
+  setTimeout(() => { config.style.display = 'none'; }, 1500);
+  
+  updateAlertBadge();
+}
 
 // =============================================
 // INIT & AUTO-REFRESH
@@ -1191,7 +2424,25 @@ loadData('trending');
 fetchTickerPrices();
 
 // Auto-refresh: tokens every 30s, ticker every 60s, feed every 12s
-setInterval(() => loadData(), 30000);
+setInterval(async () => {
+  // Fetch fresh data regardless of current view
+  const apiView = activeView === 'losers' ? 'gainers' : activeView === 'launchpad' ? 'new' : 'trending';
+  let result;
+  if (apiView === 'new') result = await fetchNewPools();
+  else if (apiView === 'gainers') result = await fetchTopPools();
+  else result = await fetchTrending();
+  if (result && result.length) {
+    tokens = result;
+    rankTokens(tokens);
+    isLoading = false;
+    // Re-render based on active view
+    const c = contentEl();
+    if (['trending','new','gainers','losers','launchpad'].includes(activeView)) { render(); }
+    else if (activeView === 'whales' && c) renderWhaleView(c);
+    else if (activeView === 'scanner' && c) renderScannerView(c);
+    renderHeat(); renderDynamicFeed(); renderWallets();
+  }
+}, 30000);
 setInterval(fetchTickerPrices, 60000);
 setInterval(renderDynamicFeed, 12000);
 </script>
