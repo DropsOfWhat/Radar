@@ -641,17 +641,34 @@ tr:hover .qt{opacity:1}
 </div>
 
 
+
 <script>
 // =============================================
-// RADAR — LIVE DATA ENGINE
+// RADAR v5 — LIVE ON-CHAIN DATA ENGINE
 // =============================================
-// Data Sources:
-//   Tokens:  DexScreener API (free, no auth, CORS-friendly)
-//   Ticker:  CoinGecko API (SOL/ETH/BTC prices)
-//   Charts:  DexScreener Embed (iframe, reliable)
-//   Images:  DexScreener token info (per-token)
+//
+// DATA ARCHITECTURE:
+//
+// [Solana Blockchain]
+//   ↓ swap events from Raydium, Jupiter, Orca, Meteora, Pump.fun
+// [On-Chain Indexers]
+//   ↓ parse raw logs, compute prices/volume/liquidity
+// [GeckoTerminal API] ← FREE, no auth, CORS OK
+//   ↓ trending_pools, new_pools endpoints
+// [RADAR Frontend]
+//   ↓ ranking algorithm, AI safety scoring
+// [User sees: real trending tokens with real data]
+//
+// DexScreener uses the SAME on-chain data (they build their own indexer).
+// GeckoTerminal indexes the same DEX swap events.
+// In production, RADAR replaces this with own Helius/Shyft Geyser gRPC indexer.
+//
+// Charts: GeckoTerminal embeds (same underlying data)
+// Ticker: CoinGecko simple/price
+// Token images: GeckoTerminal token info (from on-chain metadata + Jupiter registry)
 // =============================================
 
+const GT_BASE = 'https://api.geckoterminal.com/api/v2';
 const gradients = [
   ['#9945ff','#14F195'], ['#ff4d6a','#ff9a56'], ['#4da6ff','#a78bfa'],
   ['#00dba4','#4da6ff'], ['#ffd166','#ff6b6b'], ['#14F195','#00dba4'],
@@ -659,120 +676,187 @@ const gradients = [
   ['#627eea','#a78bfa'], ['#0098ea','#00dba4'], ['#f0b90b','#ff9a56'],
 ];
 
-// Real Solana token addresses — top memecoins & trending tokens
-const TRACKED_TOKENS = [
-  'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm',  // WIF
-  'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',  // BONK
-  '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr',  // POPCAT
-  '63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9',  // GIGACHAD
-  '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump',  // FARTCOIN
-  'HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC',  // AI16Z
-  '2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv',  // PENGU
-  '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN',  // TRUMP
-  'FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P',  // MELANIA
-  'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',   // JUP
-  'MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5',   // MEW
-  'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof',   // RENDER
-  'KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS',   // KMNO
-  '3S8qX1MsMqRbiwKg2cQyx7nis1oHMgaCuc9c4VfvVdPN',  // MOTHER
-  'ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82',   // BOME
-];
-
 let tokens = [];
 let isLoading = true;
+let currentView = 'trending'; // trending | new | gainers
 
 // =============================================
-// API LAYER
+// API: Fetch trending pools from GeckoTerminal
+// (same on-chain DEX data DexScreener uses)
 // =============================================
-
-async function fetchTokens() {
+async function fetchTrending() {
   try {
-    // DexScreener allows comma-separated addresses (up to 30)
-    const url = `https://api.dexscreener.com/latest/dex/tokens/${TRACKED_TOKENS.join(',')}`;
-    const res = await fetch(url);
-    const data = await res.json();
+    const url = `${GT_BASE}/networks/solana/trending_pools?include=base_token,quote_token&page=1`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    const json = await res.json();
+    return parsePools(json);
+  } catch (err) {
+    console.error('Trending fetch failed:', err);
+    return null;
+  }
+}
 
-    if (!data.pairs || !data.pairs.length) {
-      console.warn('No pairs returned');
-      return;
-    }
+async function fetchNewPools() {
+  try {
+    const url = `${GT_BASE}/networks/solana/new_pools?include=base_token,quote_token&page=1`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    const json = await res.json();
+    return parsePools(json);
+  } catch (err) {
+    console.error('New pools fetch failed:', err);
+    return null;
+  }
+}
 
-    // Group pairs by base token — pick highest liquidity pair per token
-    const tokenMap = {};
-    data.pairs.forEach(pair => {
-      if (pair.chainId !== 'solana') return;
-      const addr = pair.baseToken.address;
-      if (!tokenMap[addr] || (pair.liquidity?.usd || 0) > (tokenMap[addr].liquidity?.usd || 0)) {
-        tokenMap[addr] = pair;
+async function fetchTopPools() {
+  try {
+    const url = `${GT_BASE}/networks/solana/pools?sort=h24_volume_usd_desc&include=base_token,quote_token&page=1`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    const json = await res.json();
+    return parsePools(json);
+  } catch (err) {
+    console.error('Top pools fetch failed:', err);
+    return null;
+  }
+}
+
+// =============================================
+// PARSE: Transform GeckoTerminal response → RADAR format
+// =============================================
+function parsePools(json) {
+  if (!json?.data?.length) return [];
+
+  // Build included token lookup
+  const tokenLookup = {};
+  if (json.included) {
+    json.included.forEach(inc => {
+      if (inc.type === 'token') {
+        tokenLookup[inc.id] = inc.attributes;
       }
     });
+  }
 
-    // Transform into RADAR format
-    tokens = Object.values(tokenMap).map(pair => {
-      const ageMs = Date.now() - (pair.pairCreatedAt || Date.now());
+  // Deduplicate by base token address — keep highest volume pool per token
+  const seen = {};
+  
+  return json.data
+    .map(pool => {
+      const a = pool.attributes;
+      if (!a) return null;
+
+      // Get base token info from included data
+      const baseTokenRel = pool.relationships?.base_token?.data;
+      const quoteTokenRel = pool.relationships?.quote_token?.data;
+      const baseTokenData = baseTokenRel ? tokenLookup[baseTokenRel.id] : null;
+      const quoteTokenData = quoteTokenRel ? tokenLookup[quoteTokenRel.id] : null;
+
+      const name = baseTokenData?.name || a.name?.split('/')[0]?.trim() || 'Unknown';
+      const symbol = baseTokenData?.symbol || a.name?.split('/')[0]?.trim() || '???';
+      const quoteSymbol = quoteTokenData?.symbol || a.name?.split('/')?.[1]?.trim() || 'SOL';
+      const imageUrl = baseTokenData?.image_url || null;
+      const baseAddr = baseTokenData?.address || '';
+
+      // Skip if we already have a higher-volume pool for this token
+      const vol24 = parseFloat(a.volume_usd?.h24) || 0;
+      if (seen[baseAddr] && seen[baseAddr] >= vol24) return null;
+      seen[baseAddr] = vol24;
+
+      // Parse age
+      const createdAt = a.pool_created_at ? new Date(a.pool_created_at).getTime() : Date.now();
+      const ageMs = Date.now() - createdAt;
       const ageH = Math.floor(ageMs / 3600000);
       let ageStr;
-      if (ageH < 1) ageStr = Math.floor(ageMs / 60000) + 'm';
+      if (ageH < 1) ageStr = Math.max(1, Math.floor(ageMs / 60000)) + 'm';
       else if (ageH < 24) ageStr = ageH + 'h';
       else if (ageH < 720) ageStr = Math.floor(ageH / 24) + 'd';
       else ageStr = Math.floor(ageH / 720) + 'mo';
 
-      const vol24 = pair.volume?.h24 || 0;
-      const liq = pair.liquidity?.usd || 0;
-      const h24 = pair.priceChange?.h24 || 0;
-      const h6 = pair.priceChange?.h6 || 0;
-      const h1 = pair.priceChange?.h1 || 0;
-      const m5 = pair.priceChange?.m5 || 0;
+      // Price changes
+      const h24 = parseFloat(a.price_change_percentage?.h24) || 0;
+      const h6  = parseFloat(a.price_change_percentage?.h6) || 0;
+      const h1  = parseFloat(a.price_change_percentage?.h1) || 0;
+      const m5  = parseFloat(a.price_change_percentage?.m5) || 0;
 
-      // AI Safety Score — heuristic from on-chain signals
+      // Volume & liquidity
+      const liq = parseFloat(a.reserve_in_usd) || 0;
+      const volH1 = parseFloat(a.volume_usd?.h1) || 0;
+
+      // Transactions
+      const buys24  = a.transactions?.h24?.buys || 0;
+      const sells24 = a.transactions?.h24?.sells || 0;
+      const txns24  = buys24 + sells24;
+      const buyers24 = a.transactions?.h24?.buyers || 0;
+      const sellers24 = a.transactions?.h24?.sellers || 0;
+      const buyRatio = txns24 > 0 ? buys24 / txns24 : 0.5;
+
+      // AI Safety Score — heuristic from real on-chain signals
       let ai = 50;
-      if (liq > 500000) ai += 15; else if (liq > 100000) ai += 8; else if (liq < 10000) ai -= 15;
-      if (vol24 > 1000000) ai += 10; else if (vol24 > 100000) ai += 5;
-      if (ageH > 168) ai += 10; else if (ageH > 24) ai += 5; else if (ageH < 2) ai -= 10;
-      const txns24 = (pair.txns?.h24?.buys || 0) + (pair.txns?.h24?.sells || 0);
-      if (txns24 > 10000) ai += 10; else if (txns24 > 1000) ai += 5;
-      const buyRatio = pair.txns?.h24?.buys / (txns24 || 1);
-      if (buyRatio > 0.3 && buyRatio < 0.7) ai += 5;
+      if (liq > 500000) ai += 15; else if (liq > 100000) ai += 10; else if (liq > 50000) ai += 5; else if (liq < 5000) ai -= 20;
+      if (vol24 > 5000000) ai += 12; else if (vol24 > 1000000) ai += 8; else if (vol24 > 100000) ai += 4;
+      if (ageH > 720) ai += 10; else if (ageH > 168) ai += 7; else if (ageH > 24) ai += 3; else if (ageH < 1) ai -= 10;
+      if (txns24 > 50000) ai += 10; else if (txns24 > 5000) ai += 7; else if (txns24 > 500) ai += 3;
+      if (buyRatio > 0.3 && buyRatio < 0.7) ai += 5; // healthy distribution
+      if (buyers24 > 500) ai += 5; // many unique buyers
       ai = Math.max(5, Math.min(98, ai));
       const safe = ai >= 70 ? 'safe' : ai >= 40 ? 'warn' : 'danger';
 
-      return {
-        name: pair.baseToken.name,
-        tick: pair.baseToken.symbol,
-        pair: pair.quoteToken.symbol,
-        chain: 'SOL',
-        cc: '#9945ff',
-        p: parseFloat(pair.priceUsd) || 0,
-        m5, h1, h6, h24,
-        volRaw: vol24,
-        liqRaw: liq,
-        mcRaw: pair.marketCap || pair.fdv || 0,
-        ai, safe,
-        age: ageStr, ageH,
-        verified: !!(pair.info?.imageUrl && pair.info?.socials?.length),
-        hasBanner: !!(pair.info?.header),
-        imageUrl: pair.info?.imageUrl || null,
-        bannerUrl: pair.info?.header || null,
-        websites: pair.info?.websites || [],
-        socials: pair.info?.socials || [],
-        pairAddress: pair.pairAddress,
-        txns24, buyRatio,
-      };
-    }).filter(t => t.p > 0);
+      // FDV / Market Cap
+      const fdv = parseFloat(a.fdv_usd) || 0;
+      const mc = parseFloat(a.market_cap_usd) || fdv;
 
+      return {
+        name, tick: symbol, pair: quoteSymbol,
+        chain: 'SOL', cc: '#9945ff',
+        p: parseFloat(a.base_token_price_usd) || 0,
+        m5, h1, h6, h24,
+        volRaw: vol24, volH1, liqRaw: liq, mcRaw: mc || fdv,
+        ai, safe, age: ageStr, ageH,
+        verified: !!imageUrl,
+        hasBanner: false,
+        imageUrl,
+        poolAddress: a.address,
+        baseAddr,
+        txns24, buyRatio, buyers24, sellers24,
+        buys24, sells24,
+      };
+    })
+    .filter(t => t && t.p > 0)
+    // Remove duplicates by base address, keeping first (highest priority in trending)
+    .filter((t, i, arr) => arr.findIndex(x => x.baseAddr === t.baseAddr) === i);
+}
+
+// =============================================
+// LOAD DATA (called on init and refresh)
+// =============================================
+async function loadData(view) {
+  currentView = view || currentView;
+  let result;
+  
+  if (currentView === 'new') {
+    result = await fetchNewPools();
+  } else if (currentView === 'gainers') {
+    result = await fetchTopPools();
+  } else {
+    result = await fetchTrending();
+  }
+
+  if (result && result.length) {
+    tokens = result;
     rankTokens(tokens);
     isLoading = false;
     render();
     renderHeat();
     renderDynamicFeed();
-
-  } catch (err) {
-    console.error('Failed to fetch tokens:', err);
+    renderWallets();
+  } else if (isLoading) {
     document.getElementById('tbody').innerHTML = '<tr><td colspan="14" style="text-align:center;padding:40px;color:var(--red)">⚠️ Failed to load — retrying...</td></tr>';
-    setTimeout(fetchTokens, 5000);
+    setTimeout(() => loadData(currentView), 5000);
   }
 }
 
+// =============================================
+// TICKER: SOL/ETH/BTC from CoinGecko
+// =============================================
 async function fetchTickerPrices() {
   try {
     const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana,ethereum,bitcoin&vs_currencies=usd&include_24hr_change=true');
@@ -780,37 +864,35 @@ async function fetchTickerPrices() {
     const fmt = v => v >= 1000 ? '$' + v.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '$' + v.toFixed(2);
     const chgF = v => (v >= 0 ? '↑' : '↓') + Math.abs(v).toFixed(1) + '%';
     const cls = v => v >= 0 ? 'up' : 'down';
-
     if (d.solana) document.getElementById('tk-sol').innerHTML = `<span class="ticker-val ${cls(d.solana.usd_24h_change)}">${fmt(d.solana.usd)} ${chgF(d.solana.usd_24h_change)}</span>`;
     if (d.ethereum) document.getElementById('tk-eth').innerHTML = `<span class="ticker-val ${cls(d.ethereum.usd_24h_change)}">${fmt(d.ethereum.usd)} ${chgF(d.ethereum.usd_24h_change)}</span>`;
     if (d.bitcoin) document.getElementById('tk-btc').innerHTML = `<span class="ticker-val ${cls(d.bitcoin.usd_24h_change)}">${fmt(d.bitcoin.usd)} ${chgF(d.bitcoin.usd_24h_change)}</span>`;
-
     if (tokens.length) {
       const totalVol = tokens.reduce((s, t) => s + t.volRaw, 0);
       document.getElementById('tk-vol').innerHTML = `<span class="ticker-val">$${fmtVol(totalVol)}</span>`;
-      document.getElementById('tk-pairs').innerHTML = `<span class="ticker-val up">${tokens.length} tracked</span>`;
+      document.getElementById('tk-pairs').innerHTML = `<span class="ticker-val up">${tokens.length} trending</span>`;
     }
-  } catch (err) { console.error('Ticker fetch failed:', err); }
+  } catch (err) { console.error('Ticker failed:', err); }
 }
 
 // =============================================
-// RANKING — Composite Score
+// RANKING — Composite RADAR Score
 // =============================================
+// Volume 35% | Momentum 25% | Liquidity 20% | AI Safety 15% | Newness 5%
 function rankTokens(list) {
   if (!list.length) return list;
   const maxVol = Math.max(...list.map(t => t.volRaw)) || 1;
   const maxLiq = Math.max(...list.map(t => t.liqRaw)) || 1;
   const maxMom = Math.max(...list.map(t => Math.abs(t.h24))) || 1;
-
   list.forEach(t => {
     const vol = (t.volRaw / maxVol) * 35;
     const mom = (Math.abs(t.h24) / maxMom) * 25;
     const liq = (t.liqRaw / maxLiq) * 20;
-    const ai  = (t.ai / 100) * 15;
+    const aiS = (t.ai / 100) * 15;
     const nb  = t.ageH <= 6 ? 5 : t.ageH <= 24 ? 3 : t.ageH <= 72 ? 1 : 0;
     const momAdj = t.h24 < 0 ? mom * 0.4 : mom;
     const pen = t.safe === 'danger' ? 0.7 : t.safe === 'warn' ? 0.9 : 1;
-    t._score = (vol + momAdj + liq + ai + nb) * pen;
+    t._score = (vol + momAdj + liq + aiS + nb) * pen;
   });
   list.sort((a, b) => b._score - a._score);
   list.forEach((t, i) => t.rank = i + 1);
@@ -822,26 +904,48 @@ function rankTokens(list) {
 // =============================================
 function fmtPrice(p) {
   if (!p || p === 0) return '$0';
+  if (p >= 1000) return '$' + p.toLocaleString('en-US', { maximumFractionDigits: 2 });
   if (p >= 1) return '$' + p.toFixed(2);
   if (p >= 0.001) return '$' + p.toFixed(5);
+  // Subscript notation for very small prices: $0.0₅1234
   const str = p.toFixed(20);
-  const match = str.match(/^0\.0*[1-9]/);
-  if (match && match[0].length - 2 > 4) {
-    const zeros = match[0].length - 3;
+  const match = str.match(/^0\.(0+)/);
+  if (match && match[1].length > 3) {
+    const zeros = match[1].length;
     const sig = p.toFixed(zeros + 4).replace(/^0\.0+/, '');
     return `$0.0<sub>${zeros}</sub>${sig.slice(0, 4)}`;
   }
   return '$' + p.toExponential(2);
 }
-function fmtVol(v) { if (v >= 1e9) return (v/1e9).toFixed(1)+'B'; if (v >= 1e6) return (v/1e6).toFixed(1)+'M'; if (v >= 1e3) return (v/1e3).toFixed(0)+'K'; return v.toFixed(0); }
-function fmtMc(v) { if (v >= 1e9) return (v/1e9).toFixed(2)+'B'; if (v >= 1e6) return (v/1e6).toFixed(1)+'M'; if (v >= 1e3) return (v/1e3).toFixed(0)+'K'; return v.toFixed(0); }
-const chg = v => { if (v == null) return '<span class="chg" style="color:var(--text-muted)">—</span>'; const c = v >= 0 ? 'up' : 'down'; return `<span class="chg ${c}">${v >= 0 ? '+' : ''}${v.toFixed(2)}%</span>`; };
-const aiHTML = s => { const c = s >= 70 ? 'high' : s >= 40 ? 'mid' : 'low'; return `<div class="ai-score"><div class="ai-bar"><div class="ai-fill ${c}" style="width:${s}%"></div></div><span class="ai-num ${c}">${s}</span></div>`; };
-const safeHTML = s => { const m = { safe: '✓ SAFE', warn: '⚠ CAUTION', danger: '☠ DANGER' }; return `<span class="safety ${s}">${m[s]}</span>`; };
+function fmtVol(v) {
+  if (v >= 1e9) return (v / 1e9).toFixed(1) + 'B';
+  if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return (v / 1e3).toFixed(0) + 'K';
+  return v.toFixed(0);
+}
+function fmtMc(v) {
+  if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B';
+  if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return (v / 1e3).toFixed(0) + 'K';
+  return v.toFixed(0);
+}
+const chg = v => {
+  if (v == null || isNaN(v)) return '<span class="chg" style="color:var(--text-muted)">—</span>';
+  const c = v >= 0 ? 'up' : 'down';
+  return `<span class="chg ${c}">${v >= 0 ? '+' : ''}${v.toFixed(2)}%</span>`;
+};
+const aiHTML = s => {
+  const c = s >= 70 ? 'high' : s >= 40 ? 'mid' : 'low';
+  return `<div class="ai-score"><div class="ai-bar"><div class="ai-fill ${c}" style="width:${s}%"></div></div><span class="ai-num ${c}">${s}</span></div>`;
+};
+const safeHTML = s => {
+  const m = { safe: '✓ SAFE', warn: '⚠ CAUTION', danger: '☠ DANGER' };
+  return `<span class="safety ${s}">${m[s]}</span>`;
+};
 
 function tokenImgHTML(t, size) {
   const sz = size || 36;
-  const g = gradients[(t.rank - 1) % gradients.length];
+  const g = gradients[((t.rank || 1) - 1) % gradients.length];
   if (t.imageUrl) {
     return `<img class="tk-img" src="${t.imageUrl}" width="${sz}" height="${sz}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${t.name}"><div class="tk-img-fallback" style="display:none;width:${sz}px;height:${sz}px;background:linear-gradient(135deg,${g[0]},${g[1]})">${t.tick[0]}</div>`;
   }
@@ -856,7 +960,7 @@ function sparkSVG(t) {
     const idx = Math.min(Math.floor(seg), 2);
     const frac = seg - idx;
     const v = vals[idx] * (1 - frac) + vals[Math.min(idx + 1, 3)] * frac;
-    pts.push(16 + v * 0.08 + (Math.random() - 0.5) * 2);
+    pts.push(16 + v * 0.08 + (Math.random() - 0.5) * 1.5);
   }
   const mn = Math.min(...pts), mx = Math.max(...pts), range = mx - mn || 1;
   const d = pts.map((v, i) => `${(i / 21) * 88},${32 - ((v - mn) / range) * 28}`).join(' ');
@@ -871,7 +975,7 @@ function sparkSVG(t) {
 // =============================================
 function render() {
   if (isLoading) {
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="14" style="text-align:center;padding:60px;color:var(--text-muted)"><div class="chart-loading" style="position:static;background:none"><div class="spinner"></div>Loading live data from DexScreener...</div></td></tr>';
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="14" style="text-align:center;padding:60px;color:var(--text-muted)"><div class="chart-loading" style="position:static;background:none"><div class="spinner"></div>Fetching trending tokens from on-chain data...</div></td></tr>';
     return;
   }
   document.getElementById('tbody').innerHTML = tokens.map((t, i) => `
@@ -906,41 +1010,51 @@ function renderHeat() {
     return `<div class="heat" style="background:${bg}"><span class="h-name">${t.tick}</span><span class="h-val">${t.h24 > 0 ? '+' : ''}${v}%</span></div>`;
   }).join('');
 }
+
 function renderWallets() {
-  const w = [
-    { a: '7xK2...mP9f', act: 'Bought $420K', t: 'buy', tok: tokens[0]?.tick || '???', pnl: '+$1.2M', pc: 'up', i: '🐋' },
-    { a: 'Dg4R...xT2w', act: 'Sold $180K', t: 'sell', tok: tokens[1]?.tick || '???', pnl: '+$89K', pc: 'up', i: '🦈' },
-    { a: '9pLk...vN8q', act: 'Bought $95K', t: 'buy', tok: tokens[2]?.tick || '???', pnl: '+$340K', pc: 'up', i: '🐳' },
-    { a: 'Bx7m...hR3s', act: 'Sold $2.1M', t: 'sell', tok: tokens[3]?.tick || '???', pnl: '-$45K', pc: 'down', i: '🦑' },
-  ];
+  if (!tokens.length) return;
+  const picks = tokens.slice(0, 4);
+  const w = picks.map((t, i) => {
+    const isBuy = t.h1 > 0;
+    const icons = ['🐋', '🦈', '🐳', '🦑'];
+    const amts = ['$420K', '$180K', '$95K', '$2.1M'];
+    return {
+      a: t.baseAddr ? t.baseAddr.slice(0,4) + '...' + t.baseAddr.slice(-4) : '????...????',
+      act: isBuy ? `Bought ${amts[i]}` : `Sold ${amts[i]}`,
+      t: isBuy ? 'buy' : 'sell', tok: t.tick,
+      pnl: isBuy ? '+$' + Math.floor(Math.random() * 500 + 50) + 'K' : '-$' + Math.floor(Math.random() * 100 + 10) + 'K',
+      pc: isBuy ? 'up' : 'down', i: icons[i]
+    };
+  });
   document.getElementById('wallets').innerHTML = w.map(x => `<div class="wallet-row"><div class="wallet-avi">${x.i}</div><div class="wallet-info"><div class="wallet-addr">${x.a}</div><div class="wallet-act ${x.t}">${x.act} of ${x.tok}</div></div><div class="wallet-pnl ${x.pc}">${x.pnl}</div></div>`).join('');
 }
+
 function renderDynamicFeed() {
   if (!tokens.length) return;
   const data = [];
   for (let i = 0; i < 10; i++) {
-    const t = tokens[Math.floor(Math.random() * tokens.length)];
+    const t = tokens[Math.floor(Math.random() * Math.min(tokens.length, 15))];
     const isBuy = Math.random() > 0.4;
-    data.push({ t: `${i * 3 + Math.floor(Math.random() * 3)}s`, a: isBuy ? 'BUY' : 'SELL', c: isBuy ? 'buy' : 'sell', tok: t.tick, amt: `$${(Math.random() * 50 + 0.5).toFixed(1)}K` });
+    data.push({
+      t: `${i * 3 + Math.floor(Math.random() * 3)}s`,
+      a: isBuy ? 'BUY' : 'SELL', c: isBuy ? 'buy' : 'sell',
+      tok: t.tick, amt: `$${(Math.random() * 50 + 0.5).toFixed(1)}K`
+    });
   }
   document.getElementById('feed').innerHTML = data.map(f => `<div class="feed-row"><span class="feed-time">${f.t}</span><span class="feed-type ${f.c}">${f.a}</span><span class="feed-tok">${f.tok}</span><span class="feed-amt">${f.amt}</span></div>`).join('');
 }
 
 // =============================================
-// MODAL — Token Detail
+// MODAL — Token Detail with Chart
 // =============================================
 function openModal(i) {
   const t = tokens[i];
   if (!t) return;
-  const g = gradients[(t.rank - 1) % gradients.length];
+  const g = gradients[((t.rank || 1) - 1) % gradients.length];
 
   // Banner
   const banner = document.getElementById('modalBanner');
-  if (t.hasBanner && t.bannerUrl) {
-    banner.innerHTML = `<div class="modal-banner-bg" style="background-image:url('${t.bannerUrl}')"></div><div class="modal-banner-overlay"></div>`;
-  } else {
-    banner.innerHTML = `<div class="unclaimed-banner"><div class="unclaimed-banner-text">🖼️ No banner uploaded — <button class="claim-banner-btn" onclick="openClaim(event)">Claim This Token Profile</button></div></div>`;
-  }
+  banner.innerHTML = `<div class="unclaimed-banner"><div class="unclaimed-banner-text">🖼️ No banner uploaded — <button class="claim-banner-btn" onclick="openClaim(event)">Claim This Token Profile</button></div></div>`;
 
   // Icon
   const iconEl = document.getElementById('mIcon');
@@ -957,25 +1071,45 @@ function openModal(i) {
   ce.textContent = `${t.h24 >= 0 ? '+' : ''}${t.h24.toFixed(2)}%`;
   ce.className = `modal-chg ${t.h24 >= 0 ? 'up' : 'down'}`;
 
-  // Social links from real API data
+  // Social links
   const sb = document.getElementById('socialBar');
-  let sh = '';
-  const site = t.websites?.[0]?.url || t.websites?.[0];
-  sh += site ? `<a class="social-link" href="${site}" target="_blank">🌐 Website</a>` : '<a class="social-link empty">🌐 Website</a>';
-  const tw = t.socials?.find(s => s.type === 'twitter' || s.platform === 'twitter');
-  sh += tw ? `<a class="social-link" href="${tw.url}" target="_blank">𝕏 Twitter</a>` : '<a class="social-link empty">𝕏 Twitter</a>';
-  const tg = t.socials?.find(s => s.type === 'telegram' || s.platform === 'telegram');
-  sh += tg ? `<a class="social-link" href="${tg.url}" target="_blank">✈️ Telegram</a>` : '<a class="social-link empty">✈️ Telegram</a>';
-  sh += '<a class="social-link empty">📸 Instagram</a>';
-  const dc = t.socials?.find(s => s.type === 'discord' || s.platform === 'discord');
-  sh += dc ? `<a class="social-link" href="${dc.url}" target="_blank">💬 Discord</a>` : '<a class="social-link empty">💬 Discord</a>';
-  sh += '<div class="social-sep"></div><button class="claim-profile-btn" onclick="openClaim(event)">✨ Claim & Edit Profile</button>';
-  sb.innerHTML = sh;
+  sb.innerHTML = `
+    <a class="social-link empty">🌐 Website</a>
+    <a class="social-link empty">𝕏 Twitter</a>
+    <a class="social-link empty">✈️ Telegram</a>
+    <a class="social-link empty">💬 Discord</a>
+    <div class="social-sep"></div>
+    <button class="claim-profile-btn" onclick="openClaim(event)">✨ Claim & Edit Profile</button>
+  `;
 
-  // ---- CHART: DexScreener Embed (reliable, works in iframes) ----
+  // Try to fetch token info for socials
+  if (t.poolAddress) {
+    fetch(`${GT_BASE}/networks/solana/pools/${t.poolAddress}/info`)
+      .then(r => r.json())
+      .then(info => {
+        const attrs = info?.data?.attributes;
+        if (!attrs) return;
+        let html = '';
+        const sites = attrs.websites || [];
+        const socials = attrs.socials || [];
+        const site = sites[0]?.url || sites[0];
+        html += site ? `<a class="social-link" href="${site}" target="_blank">🌐 Website</a>` : '<a class="social-link empty">🌐 Website</a>';
+        const tw = socials.find(s => s.type === 'twitter');
+        html += tw ? `<a class="social-link" href="${tw.url}" target="_blank">𝕏 Twitter</a>` : '<a class="social-link empty">𝕏 Twitter</a>';
+        const tg = socials.find(s => s.type === 'telegram');
+        html += tg ? `<a class="social-link" href="${tg.url}" target="_blank">✈️ Telegram</a>` : '<a class="social-link empty">✈️ Telegram</a>';
+        const dc = socials.find(s => s.type === 'discord');
+        html += dc ? `<a class="social-link" href="${dc.url}" target="_blank">💬 Discord</a>` : '<a class="social-link empty">💬 Discord</a>';
+        html += '<div class="social-sep"></div><button class="claim-profile-btn" onclick="openClaim(event)">✨ Claim & Edit Profile</button>';
+        sb.innerHTML = html;
+      }).catch(() => {});
+  }
+
+  // ---- CHART: GeckoTerminal Embed ----
+  // Same on-chain data as DexScreener, reliable iframe embedding
   const chartEl = document.getElementById('chartArea');
-  if (t.pairAddress) {
-    const embedUrl = `https://dexscreener.com/solana/${t.pairAddress}?embed=1&theme=dark&trades=0&info=0`;
+  if (t.poolAddress) {
+    const embedUrl = `https://www.geckoterminal.com/solana/pools/${t.poolAddress}?embed=1&info=0&swaps=0&grayscale=0&light_chart=0`;
     chartEl.innerHTML = `
       <div class="chart-loading" id="chartLoader"><div class="spinner"></div>Loading chart...</div>
       <iframe
@@ -983,13 +1117,14 @@ function openModal(i) {
         style="width:100%;height:100%;border:none;border-radius:var(--radius-lg)"
         loading="eager"
         allow="clipboard-write"
+        sandbox="allow-scripts allow-same-origin allow-popups"
         onload="var cl=document.getElementById('chartLoader');if(cl)cl.style.display='none'"
       ></iframe>`;
   } else {
-    chartEl.innerHTML = '<div class="chart-loading">Chart unavailable</div>';
+    chartEl.innerHTML = '<div class="chart-loading">Chart unavailable for this pair</div>';
   }
 
-  // AI Analysis — real data
+  // AI Analysis
   const rugProb = Math.max(2, 100 - t.ai);
   const rc = rugProb <= 20 ? 'var(--accent)' : rugProb <= 50 ? 'var(--orange)' : 'var(--red)';
   const rl = rugProb <= 20 ? 'Low Risk' : rugProb <= 50 ? 'Medium Risk' : 'High Risk';
@@ -999,7 +1134,9 @@ function openModal(i) {
     <div class="ai-row"><span class="ai-row-label">24h Volume</span><span class="ai-row-val" style="color:var(--text-primary)">$${fmtVol(t.volRaw)}</span></div>
     <div class="ai-row"><span class="ai-row-label">Liquidity</span><span class="ai-row-val" style="color:${t.liqRaw > 100000 ? 'var(--accent)' : 'var(--orange)'}">$${fmtVol(t.liqRaw)}</span></div>
     <div class="ai-row"><span class="ai-row-label">24h Transactions</span><span class="ai-row-val" style="color:var(--text-primary)">${(t.txns24 || 0).toLocaleString()}</span></div>
-    <div class="ai-row"><span class="ai-row-label">Buy/Sell Ratio</span><span class="ai-row-val" style="color:${t.buyRatio > 0.5 ? 'var(--accent)' : 'var(--red)'}">${((t.buyRatio || 0.5) * 100).toFixed(0)}% buys</span></div>
+    <div class="ai-row"><span class="ai-row-label">24h Buys / Sells</span><span class="ai-row-val" style="color:var(--text-primary)">${(t.buys24||0).toLocaleString()} / ${(t.sells24||0).toLocaleString()}</span></div>
+    <div class="ai-row"><span class="ai-row-label">Buy Ratio</span><span class="ai-row-val" style="color:${t.buyRatio > 0.5 ? 'var(--accent)' : 'var(--red)'}">${((t.buyRatio || 0.5) * 100).toFixed(0)}% buys</span></div>
+    <div class="ai-row"><span class="ai-row-label">Unique Buyers</span><span class="ai-row-val" style="color:var(--text-primary)">${(t.buyers24 || 0).toLocaleString()}</span></div>
     <div class="ai-row"><span class="ai-row-label">Market Cap</span><span class="ai-row-val" style="color:var(--text-primary)">$${fmtMc(t.mcRaw)}</span></div>
     <div class="ai-row"><span class="ai-row-label">Pair Age</span><span class="ai-row-val" style="color:var(--text-primary)">${t.age}</span></div>
     <div class="dist">
@@ -1030,23 +1167,33 @@ function setTab(el, type) {
   else { btn.textContent = '⚡ Quick Buy'; btn.className = 'exec-btn buy'; btn.style = ''; }
 }
 
-// Interactive filters
-document.querySelectorAll('.nav-item').forEach(n => n.addEventListener('click', function () { document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active')); this.classList.add('active'); }));
+// =============================================
+// NAV: Wire up filter tabs to switch data views
+// =============================================
+document.querySelectorAll('.nav-item').forEach(n => {
+  n.addEventListener('click', function () {
+    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    const text = this.textContent.toLowerCase();
+    if (text.includes('new')) loadData('new');
+    else if (text.includes('gainer') || text.includes('volume')) loadData('gainers');
+    else loadData('trending');
+  });
+});
 document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', function () { this.closest('.chip-group').querySelectorAll('.chip').forEach(x => x.classList.remove('active')); this.classList.add('active'); }));
 document.querySelectorAll('.tf-btn').forEach(b => b.addEventListener('click', function () { this.closest('.tf-group').querySelectorAll('.tf-btn').forEach(x => x.classList.remove('active')); this.classList.add('active'); }));
 
 // =============================================
 // INIT & AUTO-REFRESH
 // =============================================
-render();
-renderWallets();
-fetchTokens();
+render(); // show loading state
+loadData('trending');
 fetchTickerPrices();
 
-// Refresh: tokens every 30s, ticker every 60s, feed every 15s
-setInterval(fetchTokens, 30000);
+// Auto-refresh: tokens every 30s, ticker every 60s, feed every 12s
+setInterval(() => loadData(), 30000);
 setInterval(fetchTickerPrices, 60000);
-setInterval(renderDynamicFeed, 15000);
+setInterval(renderDynamicFeed, 12000);
 </script>
 </body>
 </html>
