@@ -266,9 +266,9 @@ tr:hover .qt{opacity:1}
 
 .modal-content{flex:1;display:flex;overflow:hidden}
 .modal-chart{flex:1;padding:24px;display:flex;flex-direction:column}
-.chart-area{flex:1;border-radius:var(--radius-lg);background:var(--bg-card);border:1px solid var(--border-subtle);overflow:hidden;position:relative}
-.chart-area iframe{width:100%;height:100%;border:none;border-radius:var(--radius-lg)}
-.chart-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:.85rem;z-index:1;background:var(--bg-card)}
+.chart-area{flex:1;border-radius:var(--radius-lg);background:#0f1420;border:1px solid var(--border-subtle);overflow:hidden;position:relative;min-height:400px}
+.chart-area iframe{width:100%!important;height:100%!important;border:none!important;border-radius:var(--radius-lg)}
+.chart-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:.85rem;z-index:2;background:#0f1420}
 .chart-loading .spinner{width:28px;height:28px;border-radius:50%;border:3px solid var(--border-default);border-top-color:var(--accent);animation:spin 1s linear infinite}
 
 .modal-side{width:370px;border-left:1px solid var(--border-subtle);overflow-y:auto;padding:20px;background:rgba(255,255,255,0.01)}
@@ -451,7 +451,7 @@ tr:hover .qt{opacity:1}
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th style="width:44px">#</th><th>Token</th><th>Price</th><th>AI Score</th><th>Chart</th>
+          <th style="width:44px" title="RADAR Score: Volume 35% + Momentum 25% + Liquidity 20% + AI Safety 15% + New Bonus 5%">#</th><th>Token</th><th>Price</th><th>AI Score</th><th>Chart</th>
           <th>5M</th><th>1H</th><th>6H</th><th>24H</th><th>Volume</th><th>Liquidity</th><th>MCAP</th><th>Safety</th><th></th>
         </tr></thead>
         <tbody id="tbody"></tbody>
@@ -514,18 +514,6 @@ tr:hover .qt{opacity:1}
 
     <div class="modal-content">
       <div class="modal-chart">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap">
-          <div class="tf-group" style="margin-right:8px">
-            <button class="tf-btn">1M</button>
-            <button class="tf-btn">5M</button>
-            <button class="tf-btn active">15M</button>
-            <button class="tf-btn">1H</button>
-            <button class="tf-btn">4H</button>
-            <button class="tf-btn">1D</button>
-          </div>
-          <div style="flex:1"></div>
-          <span style="font-family:var(--font-mono);font-size:.65rem;color:var(--text-muted)">Powered by GeckoTerminal</span>
-        </div>
         <div class="chart-area" id="chartArea"></div>
       </div>
       <div class="modal-side">
@@ -669,28 +657,73 @@ const tokenImages = {
   'PETAH': 'https://cdn.dexscreener.com/cms/images/6c3c2a230cfe80e123a7d42c354e752604346f85af2b1f925b174d53f33c5ecf?width=64&height=64&fit=crop&quality=95&format=auto',
 };
 
-// Chart embed URLs — in production these come from your own indexer
-// Using GeckoTerminal embeds for the prototype (neutral source)
-const chartEmbeds = {
-  'solana': (addr) => `https://www.geckoterminal.com/solana/pools/${addr}?embed=1&info=0&swaps=0&grayscale=0&light_chart=0`,
-  'eth':    (addr) => `https://www.geckoterminal.com/eth/pools/${addr}?embed=1&info=0&swaps=0&grayscale=0&light_chart=0`,
-  'base':   (addr) => `https://www.geckoterminal.com/base/pools/${addr}?embed=1&info=0&swaps=0&grayscale=0&light_chart=0`,
+// TradingView chart symbols — in production these map to your own indexed pairs
+// For prototype, using real TradingView-listed pairs as visual stand-ins
+const tvSymbols = {
+  'anonymous': 'MEXC:ANONUSDT',
+  'Buttcoin':  'RAYDIUM:GIGAUSD_OKE5EH',
+  'PETAH':     'RAYDIUM:WIFUSD_EP2IB6',
+  'DogWifCat': 'RAYDIUM:WENUSD_89M5B3',
+  'BasedPepe': 'UNISWAP3ETH:PEPEUSDT_6B75F2.USD',
+  'GigaChad':  'RAYDIUM:GIGAUSD_OKE5EH',
+  'RugSafe':   'RAYDIUM:BONKUSD_BVKXZH',
+  'ElonDoge':  'UNISWAP3ETH:DOGEUSDT_ABCDEF.USD',
+  'Mooncat':   'RAYDIUM:POPCAT3923USD_8HSUHN',
+  'BabyWhale': 'RAYDIUM:WIFUSD_EP2IB6',
+  'TONCat':    'OKX:TONUSDT',
+  'JeetKing':  'RAYDIUM:BONKUSD_BVKXZH',
 };
 
 const tokens = [
-  { rank:1, name:'anonymous',tick:'ANON', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0003051,m5:12.45,h1:1.29,h6:82.79,h24:50.94,vol:'3.7M',liq:'52K',mc:'305K',ai:72,safe:'warn',age:'1d',verified:false,hasBanner:false, poolAddr:'Dz9iPEbMBeLGc91TCVtE8v8bTFcxVoHoQKSSuENn3B5x',chainSlug:'solana' },
-  { rank:2, name:'Buttcoin', tick:'BUTT', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.03929,m5:-3.62,h1:-1.98,h6:-0.49,h24:44.29,vol:'3.9M',liq:'893K',mc:'39.2M',ai:85,safe:'safe',age:'28d',verified:true,hasBanner:true, poolAddr:'FFcYGSSgWhFoRa9rxxKA48P8YfOz8tSW85jpo3cQHdYS',chainSlug:'solana' },
-  { rank:3, name:'PETAH',    tick:'PTAH', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0005211,m5:8.21,h1:15.44,h6:120.33,h24:890.21,vol:'2.1M',liq:'78K',mc:'521K',ai:64,safe:'warn',age:'3d',verified:false,hasBanner:false, poolAddr:'Dz9iPEbMBeLGc91TCVtE8v8bTFcxVoHoQKSSuENn3B5x',chainSlug:'solana' },
-  { rank:4, name:'DogWifCat',tick:'DWC',  pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.001842,m5:5.33,h1:22.10,h6:45.67,h24:178.90,vol:'5.2M',liq:'234K',mc:'1.8M',ai:91,safe:'safe',age:'12d',verified:true,hasBanner:true, poolAddr:'EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx',chainSlug:'solana' },
-  { rank:5, name:'BasedPepe',tick:'BPEPE',pair:'ETH',chain:'BASE',cc:'#2b6def',p:0.00004521,m5:-1.23,h1:8.90,h6:34.56,h24:67.89,vol:'1.8M',liq:'445K',mc:'4.5M',ai:78,safe:'safe',age:'5d',verified:true,hasBanner:false, poolAddr:'0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24',chainSlug:'base' },
-  { rank:6, name:'GigaChad', tick:'GIGA', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.02341,m5:2.11,h1:-4.32,h6:12.45,h24:23.67,vol:'890K',liq:'120K',mc:'2.3M',ai:82,safe:'safe',age:'45d',verified:false,hasBanner:false, poolAddr:'7VfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',chainSlug:'solana' },
-  { rank:7, name:'RugSafe',  tick:'SAFE', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0000089,m5:45.67,h1:234.56,h6:890.12,h24:2341.56,vol:'670K',liq:'12K',mc:'89K',ai:18,safe:'danger',age:'2h',verified:false,hasBanner:false, poolAddr:'FFcYGSSgWhFoRa9rxxKA48P8YfOz8tSW85jpo3cQHdYS',chainSlug:'solana' },
-  { rank:8, name:'ElonDoge', tick:'EDOGE',pair:'ETH',chain:'ETH',cc:'#627eea',p:0.0001234,m5:-8.90,h1:-12.34,h6:-25.67,h24:-45.89,vol:'456K',liq:'67K',mc:'1.2M',ai:45,safe:'warn',age:'14d',verified:false,hasBanner:false, poolAddr:'0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',chainSlug:'eth' },
-  { rank:9, name:'Mooncat',  tick:'MCAT', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.008912,m5:1.23,h1:5.67,h6:18.90,h24:34.56,vol:'1.2M',liq:'345K',mc:'8.9M',ai:88,safe:'safe',age:'21d',verified:true,hasBanner:true, poolAddr:'EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx',chainSlug:'solana' },
-  { rank:10,name:'BabyWhale',tick:'BWHAL',pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0004567,m5:15.67,h1:45.89,h6:123.45,h24:456.78,vol:'2.8M',liq:'156K',mc:'4.5M',ai:76,safe:'safe',age:'6d',verified:false,hasBanner:false, poolAddr:'7VfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',chainSlug:'solana' },
-  { rank:11,name:'TONCat',   tick:'TCAT', pair:'TON',chain:'TON',cc:'#0098ea',p:0.00234,m5:3.45,h1:12.34,h6:28.90,h24:56.78,vol:'780K',liq:'89K',mc:'2.3M',ai:71,safe:'safe',age:'8d',verified:false,hasBanner:false, poolAddr:'FFcYGSSgWhFoRa9rxxKA48P8YfOz8tSW85jpo3cQHdYS',chainSlug:'solana' },
-  { rank:12,name:'JeetKing', tick:'JEET', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0000456,m5:-15.67,h1:-28.90,h6:-45.67,h24:-67.89,vol:'340K',liq:'23K',mc:'456K',ai:32,safe:'warn',age:'3d',verified:false,hasBanner:false, poolAddr:'Dz9iPEbMBeLGc91TCVtE8v8bTFcxVoHoQKSSuENn3B5x',chainSlug:'solana' },
+  { name:'anonymous',tick:'ANON', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0003051,m5:12.45,h1:1.29,h6:82.79,h24:50.94,volRaw:3700000,liqRaw:52000,mc:'305K',ai:72,safe:'warn',age:'1d',ageH:24,verified:false,hasBanner:false },
+  { name:'Buttcoin', tick:'BUTT', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.03929,m5:-3.62,h1:-1.98,h6:-0.49,h24:44.29,volRaw:3900000,liqRaw:893000,mc:'39.2M',ai:85,safe:'safe',age:'28d',ageH:672,verified:true,hasBanner:true },
+  { name:'PETAH',    tick:'PTAH', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0005211,m5:8.21,h1:15.44,h6:120.33,h24:890.21,volRaw:2100000,liqRaw:78000,mc:'521K',ai:64,safe:'warn',age:'3d',ageH:72,verified:false,hasBanner:false },
+  { name:'DogWifCat',tick:'DWC',  pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.001842,m5:5.33,h1:22.10,h6:45.67,h24:178.90,volRaw:5200000,liqRaw:234000,mc:'1.8M',ai:91,safe:'safe',age:'12d',ageH:288,verified:true,hasBanner:true },
+  { name:'BasedPepe',tick:'BPEPE',pair:'ETH',chain:'BASE',cc:'#2b6def',p:0.00004521,m5:-1.23,h1:8.90,h6:34.56,h24:67.89,volRaw:1800000,liqRaw:445000,mc:'4.5M',ai:78,safe:'safe',age:'5d',ageH:120,verified:true,hasBanner:false },
+  { name:'GigaChad', tick:'GIGA', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.02341,m5:2.11,h1:-4.32,h6:12.45,h24:23.67,volRaw:890000,liqRaw:120000,mc:'2.3M',ai:82,safe:'safe',age:'45d',ageH:1080,verified:false,hasBanner:false },
+  { name:'RugSafe',  tick:'SAFE', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0000089,m5:45.67,h1:234.56,h6:890.12,h24:2341.56,volRaw:670000,liqRaw:12000,mc:'89K',ai:18,safe:'danger',age:'2h',ageH:2,verified:false,hasBanner:false },
+  { name:'ElonDoge', tick:'EDOGE',pair:'ETH',chain:'ETH',cc:'#627eea',p:0.0001234,m5:-8.90,h1:-12.34,h6:-25.67,h24:-45.89,volRaw:456000,liqRaw:67000,mc:'1.2M',ai:45,safe:'warn',age:'14d',ageH:336,verified:false,hasBanner:false },
+  { name:'Mooncat',  tick:'MCAT', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.008912,m5:1.23,h1:5.67,h6:18.90,h24:34.56,volRaw:1200000,liqRaw:345000,mc:'8.9M',ai:88,safe:'safe',age:'21d',ageH:504,verified:true,hasBanner:true },
+  { name:'BabyWhale',tick:'BWHAL',pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0004567,m5:15.67,h1:45.89,h6:123.45,h24:456.78,volRaw:2800000,liqRaw:156000,mc:'4.5M',ai:76,safe:'safe',age:'6d',ageH:144,verified:false,hasBanner:false },
+  { name:'TONCat',   tick:'TCAT', pair:'TON',chain:'TON',cc:'#0098ea',p:0.00234,m5:3.45,h1:12.34,h6:28.90,h24:56.78,volRaw:780000,liqRaw:89000,mc:'2.3M',ai:71,safe:'safe',age:'8d',ageH:192,verified:false,hasBanner:false },
+  { name:'JeetKing', tick:'JEET', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0000456,m5:-15.67,h1:-28.90,h6:-45.67,h24:-67.89,volRaw:340000,liqRaw:23000,mc:'456K',ai:32,safe:'warn',age:'3d',ageH:72,verified:false,hasBanner:false },
 ];
+
+// ========================================
+// RANKING ALGORITHM — Composite Score
+// ========================================
+// Weights: Volume 35%, Momentum 25%, Liquidity 20%, AI Safety 15%, Newness 5%
+function rankTokens(list) {
+  // Get max values for normalization
+  const maxVol = Math.max(...list.map(t => t.volRaw));
+  const maxLiq = Math.max(...list.map(t => t.liqRaw));
+  const maxMomentum = Math.max(...list.map(t => Math.abs(t.h24)));
+
+  list.forEach(t => {
+    const volScore    = (t.volRaw / maxVol) * 35;                                // 0-35
+    const momScore    = (Math.abs(t.h24) / maxMomentum) * 25;                    // 0-25
+    const liqScore    = (t.liqRaw / maxLiq) * 20;                                // 0-20
+    const aiScore     = (t.ai / 100) * 15;                                       // 0-15
+    const newBoost    = t.ageH <= 6 ? 5 : t.ageH <= 24 ? 3 : t.ageH <= 72 ? 1 : 0; // 0-5
+
+    // Penalty: negative 24h tokens get momentum score halved
+    const momAdjusted = t.h24 < 0 ? momScore * 0.4 : momScore;
+    // Penalty: danger tokens lose 30% of total
+    const dangerPenalty = t.safe === 'danger' ? 0.7 : t.safe === 'warn' ? 0.9 : 1;
+
+    t._score = (volScore + momAdjusted + liqScore + aiScore + newBoost) * dangerPenalty;
+  });
+
+  list.sort((a, b) => b._score - a._score);
+  list.forEach((t, i) => t.rank = i + 1);
+  return list;
+}
+
+rankTokens(tokens);
+
+// Format helpers
+function fmtVol(v) { return v >= 1e6 ? (v/1e6).toFixed(1)+'M' : (v/1e3).toFixed(0)+'K'; }
+function fmtLiq(v) { return v >= 1e6 ? (v/1e6).toFixed(1)+'M' : (v/1e3).toFixed(0)+'K'; }
 
 const chg = v => { const c = v>=0?'up':'down'; return `<span class="chg ${c}">${v>=0?'+':''}${v.toFixed(2)}%</span>`; };
 const aiHTML = s => { const c = s>=70?'high':s>=40?'mid':'low'; return `<div class="ai-score"><div class="ai-bar"><div class="ai-fill ${c}" style="width:${s}%"></div></div><span class="ai-num ${c}">${s}</span></div>`; };
@@ -728,7 +761,7 @@ function render() {
               ${t.name}
               ${t.verified ? '<span class="verified-badge">✓</span>' : ''}
               <span class="chain-dot" style="background:${t.cc}"></span>
-              ${t.age.includes('h') ? '<span class="new-tag">NEW</span>' : ''}
+              ${t.ageH <= 6 ? '<span class="new-tag">NEW</span>' : ''}
             </div>
             <div class="tk-sub">${t.tick}/${t.pair} · ${t.age}</div>
           </div>
@@ -741,8 +774,8 @@ function render() {
       <td>${chg(t.h1)}</td>
       <td>${chg(t.h6)}</td>
       <td>${chg(t.h24)}</td>
-      <td class="muted">$${t.vol}</td>
-      <td class="muted">$${t.liq}</td>
+      <td class="muted">$${fmtVol(t.volRaw)}</td>
+      <td class="muted">$${fmtLiq(t.liqRaw)}</td>
       <td class="muted">$${t.mc}</td>
       <td>${safeHTML(t.safe)}</td>
       <td><div class="qt"><button class="qt-btn qt-buy" onclick="event.stopPropagation()">BUY</button><button class="qt-btn qt-sell" onclick="event.stopPropagation()">SELL</button></div></td>
@@ -752,8 +785,7 @@ function render() {
 
 // Sidebar renders
 function renderHeat() {
-  const data=[{n:'ANON',v:82.79},{n:'BUTT',v:44.29},{n:'PTAH',v:890.21},{n:'DWC',v:178.90},{n:'BPEPE',v:67.89},{n:'GIGA',v:23.67},{n:'SAFE',v:2341.56},{n:'EDOGE',v:-45.89},{n:'MCAT',v:34.56},{n:'BWHAL',v:456.78},{n:'TCAT',v:56.78},{n:'JEET',v:-67.89}];
-  document.getElementById('heatmap').innerHTML = data.map(d=>{const i=Math.min(Math.abs(d.v)/500,1);const bg=d.v>=0?`rgba(0,219,164,${.1+i*.45})`:`rgba(255,77,106,${.1+i*.45})`;const disp=Math.abs(d.v)>999?(d.v/1000).toFixed(1)+'K':d.v.toFixed(0);return`<div class="heat" style="background:${bg}"><span class="h-name">${d.n}</span><span class="h-val">${d.v>0?'+':''}${disp}%</span></div>`}).join('');
+  document.getElementById('heatmap').innerHTML = tokens.map(t=>{const i=Math.min(Math.abs(t.h24)/500,1);const bg=t.h24>=0?`rgba(0,219,164,${.1+i*.45})`:`rgba(255,77,106,${.1+i*.45})`;const disp=Math.abs(t.h24)>999?(t.h24/1000).toFixed(1)+'K':t.h24.toFixed(0);return`<div class="heat" style="background:${bg}"><span class="h-name">${t.tick}</span><span class="h-val">${t.h24>0?'+':''}${disp}%</span></div>`}).join('');
 }
 function renderWallets() {
   const data=[{a:'7xK2...mP9f',act:'Bought $420K',t:'buy',tok:'BUTT',pnl:'+$1.2M',pc:'up',i:'🐋'},{a:'Dg4R...xT2w',act:'Sold $180K',t:'sell',tok:'ANON',pnl:'+$89K',pc:'up',i:'🦈'},{a:'9pLk...vN8q',act:'Bought $95K',t:'buy',tok:'DWC',pnl:'+$340K',pc:'up',i:'🐳'},{a:'Bx7m...hR3s',act:'Sold $2.1M',t:'sell',tok:'GIGA',pnl:'-$45K',pc:'down',i:'🦑'}];
@@ -794,14 +826,51 @@ function openModal(i) {
   ce.textContent = `${t.h24>=0?'+':''}${t.h24.toFixed(2)}%`;
   ce.className = `modal-chg ${t.h24>=0?'up':'down'}`;
 
-  // Chart — embed real chart from GeckoTerminal
+  // Chart — TradingView Advanced Chart Widget
   const chartEl = document.getElementById('chartArea');
-  const embedFn = chartEmbeds[t.chainSlug];
-  if (embedFn && t.poolAddr) {
-    const src = embedFn(t.poolAddr);
-    chartEl.innerHTML = `<div class="chart-loading" id="chartLoader"><div class="spinner"></div>Loading chart...</div><iframe src="${src}" allow="clipboard-write" loading="lazy" onload="document.getElementById('chartLoader')&&(document.getElementById('chartLoader').style.display='none')"></iframe>`;
+  const tvSymbol = tvSymbols[t.name] || 'BINANCE:SOLUSDT';
+  const tvId = 'tv_' + Date.now();
+  chartEl.innerHTML = `<div class="chart-loading" id="chartLoader"><div class="spinner"></div>Loading chart...</div><div id="${tvId}" style="width:100%;height:100%"></div>`;
+  
+  // Load TradingView widget
+  const tvScript = document.createElement('script');
+  tvScript.src = 'https://s.tradingview.com/tv.js';
+  tvScript.onload = () => {
+    if (typeof TradingView !== 'undefined') {
+      new TradingView.widget({
+        container_id: tvId,
+        symbol: tvSymbol,
+        theme: 'dark',
+        style: '1',
+        locale: 'en',
+        toolbar_bg: '#0f1420',
+        enable_publishing: false,
+        allow_symbol_change: false,
+        hide_top_toolbar: false,
+        hide_legend: false,
+        save_image: false,
+        autosize: true,
+        backgroundColor: '#0f1420',
+        gridColor: 'rgba(255,255,255,0.03)',
+        studies: ['Volume@tv-basicstudies'],
+        overrides: {
+          'paneProperties.background': '#0f1420',
+          'paneProperties.backgroundType': 'solid',
+          'mainSeriesProperties.candleStyle.upColor': '#00dba4',
+          'mainSeriesProperties.candleStyle.downColor': '#ff4d6a',
+          'mainSeriesProperties.candleStyle.wickUpColor': '#00dba4',
+          'mainSeriesProperties.candleStyle.wickDownColor': '#ff4d6a',
+        }
+      });
+      const loader = document.getElementById('chartLoader');
+      if (loader) setTimeout(() => loader.style.display = 'none', 1500);
+    }
+  };
+  // Check if already loaded
+  if (typeof TradingView !== 'undefined') {
+    tvScript.onload();
   } else {
-    chartEl.innerHTML = `<div class="chart-loading">Chart unavailable for this pair</div>`;
+    document.head.appendChild(tvScript);
   }
 
   document.getElementById('modal').classList.add('active');
