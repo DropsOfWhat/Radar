@@ -1,0 +1,9 @@
+{
+  "name": "radar-dex-terminal",
+  "version": "0.1.0",
+  "description": "RADAR — DEX Intelligence Terminal",
+  "scripts": {
+    "dev": "npx serve public",
+    "build": "echo 'Static site — no build needed'"
+  }
+}
