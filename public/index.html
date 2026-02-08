@@ -399,12 +399,11 @@ tr:hover .qt{opacity:1}
 <!-- TICKER -->
 <div class="ticker-bar">
   <div class="ticker-item"><span class="ticker-dot"></span><span class="ticker-label">Live</span></div>
-  <div class="ticker-item"><span class="ticker-label">24h Vol</span><span class="ticker-val">$24.8B</span></div>
-  <div class="ticker-item"><span class="ticker-label">Txns</span><span class="ticker-val">51.2M</span></div>
-  <div class="ticker-item"><span class="ticker-label">New Pairs</span><span class="ticker-val up">+12,847</span></div>
-  <div class="ticker-item"><span class="ticker-label">SOL</span><span class="ticker-val up">$198.42 ↑2.3%</span></div>
-  <div class="ticker-item"><span class="ticker-label">ETH</span><span class="ticker-val down">$2,847 ↓0.8%</span></div>
-  <div class="ticker-item"><span class="ticker-label">BTC</span><span class="ticker-val up">$97,241 ↑1.1%</span></div>
+  <div class="ticker-item"><span class="ticker-label">24h Vol</span><span id="tk-vol"><span class="ticker-val">Loading...</span></span></div>
+  <div class="ticker-item"><span class="ticker-label">Tokens</span><span id="tk-pairs"><span class="ticker-val">—</span></span></div>
+  <div class="ticker-item"><span class="ticker-label">SOL</span><span id="tk-sol"><span class="ticker-val">Loading...</span></span></div>
+  <div class="ticker-item"><span class="ticker-label">ETH</span><span id="tk-eth"><span class="ticker-val">Loading...</span></span></div>
+  <div class="ticker-item"><span class="ticker-label">BTC</span><span id="tk-btc"><span class="ticker-val">Loading...</span></span></div>
 </div>
 
 <!-- NAV -->
@@ -641,8 +640,18 @@ tr:hover .qt{opacity:1}
   </div>
 </div>
 
+
 <script>
-// === Gradient palette for fallback token images ===
+// =============================================
+// RADAR — LIVE DATA ENGINE
+// =============================================
+// Data Sources:
+//   Tokens:  DexScreener API (free, no auth, CORS-friendly)
+//   Ticker:  CoinGecko API (SOL/ETH/BTC prices)
+//   Charts:  DexScreener Embed (iframe, reliable)
+//   Images:  DexScreener token info (per-token)
+// =============================================
+
 const gradients = [
   ['#9945ff','#14F195'], ['#ff4d6a','#ff9a56'], ['#4da6ff','#a78bfa'],
   ['#00dba4','#4da6ff'], ['#ffd166','#ff6b6b'], ['#14F195','#00dba4'],
@@ -650,268 +659,394 @@ const gradients = [
   ['#627eea','#a78bfa'], ['#0098ea','#00dba4'], ['#f0b90b','#ff9a56'],
 ];
 
-// Real token image URLs (DexScreener CDN pattern) — in production these come from API
-const tokenImages = {
-  'anonymous': 'https://cdn.dexscreener.com/cms/images/af1c3e3403807768c03068c7d34ee7724a44d339364189f9d435e0563ec1d134?width=64&height=64&fit=crop&quality=95&format=auto',
-  'Buttcoin': 'https://cdn.dexscreener.com/cms/images/baf3d4bdaac47ef59f32c8ddc11f83e995f351be1eef6d4d192d72ff8def0020?width=64&height=64&fit=crop&quality=95&format=auto',
-  'PETAH': 'https://cdn.dexscreener.com/cms/images/6c3c2a230cfe80e123a7d42c354e752604346f85af2b1f925b174d53f33c5ecf?width=64&height=64&fit=crop&quality=95&format=auto',
-};
-
-// TradingView chart symbols — in production these map to your own indexed pairs
-// For prototype, using real TradingView-listed pairs as visual stand-ins
-const tvSymbols = {
-  'anonymous': 'MEXC:ANONUSDT',
-  'Buttcoin':  'RAYDIUM:GIGAUSD_OKE5EH',
-  'PETAH':     'RAYDIUM:WIFUSD_EP2IB6',
-  'DogWifCat': 'RAYDIUM:WENUSD_89M5B3',
-  'BasedPepe': 'UNISWAP3ETH:PEPEUSDT_6B75F2.USD',
-  'GigaChad':  'RAYDIUM:GIGAUSD_OKE5EH',
-  'RugSafe':   'RAYDIUM:BONKUSD_BVKXZH',
-  'ElonDoge':  'UNISWAP3ETH:DOGEUSDT_ABCDEF.USD',
-  'Mooncat':   'RAYDIUM:POPCAT3923USD_8HSUHN',
-  'BabyWhale': 'RAYDIUM:WIFUSD_EP2IB6',
-  'TONCat':    'OKX:TONUSDT',
-  'JeetKing':  'RAYDIUM:BONKUSD_BVKXZH',
-};
-
-const tokens = [
-  { name:'anonymous',tick:'ANON', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0003051,m5:12.45,h1:1.29,h6:82.79,h24:50.94,volRaw:3700000,liqRaw:52000,mc:'305K',ai:72,safe:'warn',age:'1d',ageH:24,verified:false,hasBanner:false },
-  { name:'Buttcoin', tick:'BUTT', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.03929,m5:-3.62,h1:-1.98,h6:-0.49,h24:44.29,volRaw:3900000,liqRaw:893000,mc:'39.2M',ai:85,safe:'safe',age:'28d',ageH:672,verified:true,hasBanner:true },
-  { name:'PETAH',    tick:'PTAH', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0005211,m5:8.21,h1:15.44,h6:120.33,h24:890.21,volRaw:2100000,liqRaw:78000,mc:'521K',ai:64,safe:'warn',age:'3d',ageH:72,verified:false,hasBanner:false },
-  { name:'DogWifCat',tick:'DWC',  pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.001842,m5:5.33,h1:22.10,h6:45.67,h24:178.90,volRaw:5200000,liqRaw:234000,mc:'1.8M',ai:91,safe:'safe',age:'12d',ageH:288,verified:true,hasBanner:true },
-  { name:'BasedPepe',tick:'BPEPE',pair:'ETH',chain:'BASE',cc:'#2b6def',p:0.00004521,m5:-1.23,h1:8.90,h6:34.56,h24:67.89,volRaw:1800000,liqRaw:445000,mc:'4.5M',ai:78,safe:'safe',age:'5d',ageH:120,verified:true,hasBanner:false },
-  { name:'GigaChad', tick:'GIGA', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.02341,m5:2.11,h1:-4.32,h6:12.45,h24:23.67,volRaw:890000,liqRaw:120000,mc:'2.3M',ai:82,safe:'safe',age:'45d',ageH:1080,verified:false,hasBanner:false },
-  { name:'RugSafe',  tick:'SAFE', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0000089,m5:45.67,h1:234.56,h6:890.12,h24:2341.56,volRaw:670000,liqRaw:12000,mc:'89K',ai:18,safe:'danger',age:'2h',ageH:2,verified:false,hasBanner:false },
-  { name:'ElonDoge', tick:'EDOGE',pair:'ETH',chain:'ETH',cc:'#627eea',p:0.0001234,m5:-8.90,h1:-12.34,h6:-25.67,h24:-45.89,volRaw:456000,liqRaw:67000,mc:'1.2M',ai:45,safe:'warn',age:'14d',ageH:336,verified:false,hasBanner:false },
-  { name:'Mooncat',  tick:'MCAT', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.008912,m5:1.23,h1:5.67,h6:18.90,h24:34.56,volRaw:1200000,liqRaw:345000,mc:'8.9M',ai:88,safe:'safe',age:'21d',ageH:504,verified:true,hasBanner:true },
-  { name:'BabyWhale',tick:'BWHAL',pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0004567,m5:15.67,h1:45.89,h6:123.45,h24:456.78,volRaw:2800000,liqRaw:156000,mc:'4.5M',ai:76,safe:'safe',age:'6d',ageH:144,verified:false,hasBanner:false },
-  { name:'TONCat',   tick:'TCAT', pair:'TON',chain:'TON',cc:'#0098ea',p:0.00234,m5:3.45,h1:12.34,h6:28.90,h24:56.78,volRaw:780000,liqRaw:89000,mc:'2.3M',ai:71,safe:'safe',age:'8d',ageH:192,verified:false,hasBanner:false },
-  { name:'JeetKing', tick:'JEET', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0000456,m5:-15.67,h1:-28.90,h6:-45.67,h24:-67.89,volRaw:340000,liqRaw:23000,mc:'456K',ai:32,safe:'warn',age:'3d',ageH:72,verified:false,hasBanner:false },
+// Real Solana token addresses — top memecoins & trending tokens
+const TRACKED_TOKENS = [
+  'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm',  // WIF
+  'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',  // BONK
+  '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr',  // POPCAT
+  '63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9',  // GIGACHAD
+  '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump',  // FARTCOIN
+  'HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC',  // AI16Z
+  '2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv',  // PENGU
+  '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN',  // TRUMP
+  'FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P',  // MELANIA
+  'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',   // JUP
+  'MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5',   // MEW
+  'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof',   // RENDER
+  'KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS',   // KMNO
+  '3S8qX1MsMqRbiwKg2cQyx7nis1oHMgaCuc9c4VfvVdPN',  // MOTHER
+  'ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82',   // BOME
 ];
 
-// ========================================
-// RANKING ALGORITHM — Composite Score
-// ========================================
-// Weights: Volume 35%, Momentum 25%, Liquidity 20%, AI Safety 15%, Newness 5%
+let tokens = [];
+let isLoading = true;
+
+// =============================================
+// API LAYER
+// =============================================
+
+async function fetchTokens() {
+  try {
+    // DexScreener allows comma-separated addresses (up to 30)
+    const url = `https://api.dexscreener.com/latest/dex/tokens/${TRACKED_TOKENS.join(',')}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.pairs || !data.pairs.length) {
+      console.warn('No pairs returned');
+      return;
+    }
+
+    // Group pairs by base token — pick highest liquidity pair per token
+    const tokenMap = {};
+    data.pairs.forEach(pair => {
+      if (pair.chainId !== 'solana') return;
+      const addr = pair.baseToken.address;
+      if (!tokenMap[addr] || (pair.liquidity?.usd || 0) > (tokenMap[addr].liquidity?.usd || 0)) {
+        tokenMap[addr] = pair;
+      }
+    });
+
+    // Transform into RADAR format
+    tokens = Object.values(tokenMap).map(pair => {
+      const ageMs = Date.now() - (pair.pairCreatedAt || Date.now());
+      const ageH = Math.floor(ageMs / 3600000);
+      let ageStr;
+      if (ageH < 1) ageStr = Math.floor(ageMs / 60000) + 'm';
+      else if (ageH < 24) ageStr = ageH + 'h';
+      else if (ageH < 720) ageStr = Math.floor(ageH / 24) + 'd';
+      else ageStr = Math.floor(ageH / 720) + 'mo';
+
+      const vol24 = pair.volume?.h24 || 0;
+      const liq = pair.liquidity?.usd || 0;
+      const h24 = pair.priceChange?.h24 || 0;
+      const h6 = pair.priceChange?.h6 || 0;
+      const h1 = pair.priceChange?.h1 || 0;
+      const m5 = pair.priceChange?.m5 || 0;
+
+      // AI Safety Score — heuristic from on-chain signals
+      let ai = 50;
+      if (liq > 500000) ai += 15; else if (liq > 100000) ai += 8; else if (liq < 10000) ai -= 15;
+      if (vol24 > 1000000) ai += 10; else if (vol24 > 100000) ai += 5;
+      if (ageH > 168) ai += 10; else if (ageH > 24) ai += 5; else if (ageH < 2) ai -= 10;
+      const txns24 = (pair.txns?.h24?.buys || 0) + (pair.txns?.h24?.sells || 0);
+      if (txns24 > 10000) ai += 10; else if (txns24 > 1000) ai += 5;
+      const buyRatio = pair.txns?.h24?.buys / (txns24 || 1);
+      if (buyRatio > 0.3 && buyRatio < 0.7) ai += 5;
+      ai = Math.max(5, Math.min(98, ai));
+      const safe = ai >= 70 ? 'safe' : ai >= 40 ? 'warn' : 'danger';
+
+      return {
+        name: pair.baseToken.name,
+        tick: pair.baseToken.symbol,
+        pair: pair.quoteToken.symbol,
+        chain: 'SOL',
+        cc: '#9945ff',
+        p: parseFloat(pair.priceUsd) || 0,
+        m5, h1, h6, h24,
+        volRaw: vol24,
+        liqRaw: liq,
+        mcRaw: pair.marketCap || pair.fdv || 0,
+        ai, safe,
+        age: ageStr, ageH,
+        verified: !!(pair.info?.imageUrl && pair.info?.socials?.length),
+        hasBanner: !!(pair.info?.header),
+        imageUrl: pair.info?.imageUrl || null,
+        bannerUrl: pair.info?.header || null,
+        websites: pair.info?.websites || [],
+        socials: pair.info?.socials || [],
+        pairAddress: pair.pairAddress,
+        txns24, buyRatio,
+      };
+    }).filter(t => t.p > 0);
+
+    rankTokens(tokens);
+    isLoading = false;
+    render();
+    renderHeat();
+    renderDynamicFeed();
+
+  } catch (err) {
+    console.error('Failed to fetch tokens:', err);
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="14" style="text-align:center;padding:40px;color:var(--red)">⚠️ Failed to load — retrying...</td></tr>';
+    setTimeout(fetchTokens, 5000);
+  }
+}
+
+async function fetchTickerPrices() {
+  try {
+    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana,ethereum,bitcoin&vs_currencies=usd&include_24hr_change=true');
+    const d = await res.json();
+    const fmt = v => v >= 1000 ? '$' + v.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '$' + v.toFixed(2);
+    const chgF = v => (v >= 0 ? '↑' : '↓') + Math.abs(v).toFixed(1) + '%';
+    const cls = v => v >= 0 ? 'up' : 'down';
+
+    if (d.solana) document.getElementById('tk-sol').innerHTML = `<span class="ticker-val ${cls(d.solana.usd_24h_change)}">${fmt(d.solana.usd)} ${chgF(d.solana.usd_24h_change)}</span>`;
+    if (d.ethereum) document.getElementById('tk-eth').innerHTML = `<span class="ticker-val ${cls(d.ethereum.usd_24h_change)}">${fmt(d.ethereum.usd)} ${chgF(d.ethereum.usd_24h_change)}</span>`;
+    if (d.bitcoin) document.getElementById('tk-btc').innerHTML = `<span class="ticker-val ${cls(d.bitcoin.usd_24h_change)}">${fmt(d.bitcoin.usd)} ${chgF(d.bitcoin.usd_24h_change)}</span>`;
+
+    if (tokens.length) {
+      const totalVol = tokens.reduce((s, t) => s + t.volRaw, 0);
+      document.getElementById('tk-vol').innerHTML = `<span class="ticker-val">$${fmtVol(totalVol)}</span>`;
+      document.getElementById('tk-pairs').innerHTML = `<span class="ticker-val up">${tokens.length} tracked</span>`;
+    }
+  } catch (err) { console.error('Ticker fetch failed:', err); }
+}
+
+// =============================================
+// RANKING — Composite Score
+// =============================================
 function rankTokens(list) {
-  // Get max values for normalization
-  const maxVol = Math.max(...list.map(t => t.volRaw));
-  const maxLiq = Math.max(...list.map(t => t.liqRaw));
-  const maxMomentum = Math.max(...list.map(t => Math.abs(t.h24)));
+  if (!list.length) return list;
+  const maxVol = Math.max(...list.map(t => t.volRaw)) || 1;
+  const maxLiq = Math.max(...list.map(t => t.liqRaw)) || 1;
+  const maxMom = Math.max(...list.map(t => Math.abs(t.h24))) || 1;
 
   list.forEach(t => {
-    const volScore    = (t.volRaw / maxVol) * 35;                                // 0-35
-    const momScore    = (Math.abs(t.h24) / maxMomentum) * 25;                    // 0-25
-    const liqScore    = (t.liqRaw / maxLiq) * 20;                                // 0-20
-    const aiScore     = (t.ai / 100) * 15;                                       // 0-15
-    const newBoost    = t.ageH <= 6 ? 5 : t.ageH <= 24 ? 3 : t.ageH <= 72 ? 1 : 0; // 0-5
-
-    // Penalty: negative 24h tokens get momentum score halved
-    const momAdjusted = t.h24 < 0 ? momScore * 0.4 : momScore;
-    // Penalty: danger tokens lose 30% of total
-    const dangerPenalty = t.safe === 'danger' ? 0.7 : t.safe === 'warn' ? 0.9 : 1;
-
-    t._score = (volScore + momAdjusted + liqScore + aiScore + newBoost) * dangerPenalty;
+    const vol = (t.volRaw / maxVol) * 35;
+    const mom = (Math.abs(t.h24) / maxMom) * 25;
+    const liq = (t.liqRaw / maxLiq) * 20;
+    const ai  = (t.ai / 100) * 15;
+    const nb  = t.ageH <= 6 ? 5 : t.ageH <= 24 ? 3 : t.ageH <= 72 ? 1 : 0;
+    const momAdj = t.h24 < 0 ? mom * 0.4 : mom;
+    const pen = t.safe === 'danger' ? 0.7 : t.safe === 'warn' ? 0.9 : 1;
+    t._score = (vol + momAdj + liq + ai + nb) * pen;
   });
-
   list.sort((a, b) => b._score - a._score);
   list.forEach((t, i) => t.rank = i + 1);
   return list;
 }
 
-rankTokens(tokens);
-
-// Format helpers
-function fmtVol(v) { return v >= 1e6 ? (v/1e6).toFixed(1)+'M' : (v/1e3).toFixed(0)+'K'; }
-function fmtLiq(v) { return v >= 1e6 ? (v/1e6).toFixed(1)+'M' : (v/1e3).toFixed(0)+'K'; }
-
-const chg = v => { const c = v>=0?'up':'down'; return `<span class="chg ${c}">${v>=0?'+':''}${v.toFixed(2)}%</span>`; };
-const aiHTML = s => { const c = s>=70?'high':s>=40?'mid':'low'; return `<div class="ai-score"><div class="ai-bar"><div class="ai-fill ${c}" style="width:${s}%"></div></div><span class="ai-num ${c}">${s}</span></div>`; };
-const safeHTML = s => { const m={safe:'✓ SAFE',warn:'⚠ CAUTION',danger:'☠ DANGER'}; return `<span class="safety ${s}">${m[s]}</span>`; };
+// =============================================
+// FORMAT HELPERS
+// =============================================
+function fmtPrice(p) {
+  if (!p || p === 0) return '$0';
+  if (p >= 1) return '$' + p.toFixed(2);
+  if (p >= 0.001) return '$' + p.toFixed(5);
+  const str = p.toFixed(20);
+  const match = str.match(/^0\.0*[1-9]/);
+  if (match && match[0].length - 2 > 4) {
+    const zeros = match[0].length - 3;
+    const sig = p.toFixed(zeros + 4).replace(/^0\.0+/, '');
+    return `$0.0<sub>${zeros}</sub>${sig.slice(0, 4)}`;
+  }
+  return '$' + p.toExponential(2);
+}
+function fmtVol(v) { if (v >= 1e9) return (v/1e9).toFixed(1)+'B'; if (v >= 1e6) return (v/1e6).toFixed(1)+'M'; if (v >= 1e3) return (v/1e3).toFixed(0)+'K'; return v.toFixed(0); }
+function fmtMc(v) { if (v >= 1e9) return (v/1e9).toFixed(2)+'B'; if (v >= 1e6) return (v/1e6).toFixed(1)+'M'; if (v >= 1e3) return (v/1e3).toFixed(0)+'K'; return v.toFixed(0); }
+const chg = v => { if (v == null) return '<span class="chg" style="color:var(--text-muted)">—</span>'; const c = v >= 0 ? 'up' : 'down'; return `<span class="chg ${c}">${v >= 0 ? '+' : ''}${v.toFixed(2)}%</span>`; };
+const aiHTML = s => { const c = s >= 70 ? 'high' : s >= 40 ? 'mid' : 'low'; return `<div class="ai-score"><div class="ai-bar"><div class="ai-fill ${c}" style="width:${s}%"></div></div><span class="ai-num ${c}">${s}</span></div>`; };
+const safeHTML = s => { const m = { safe: '✓ SAFE', warn: '⚠ CAUTION', danger: '☠ DANGER' }; return `<span class="safety ${s}">${m[s]}</span>`; };
 
 function tokenImgHTML(t, size) {
   const sz = size || 36;
-  const imgUrl = tokenImages[t.name];
   const g = gradients[(t.rank - 1) % gradients.length];
-  if (imgUrl) {
-    return `<img class="tk-img" src="${imgUrl}" width="${sz}" height="${sz}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${t.name}"><div class="tk-img-fallback" style="display:none;width:${sz}px;height:${sz}px;background:linear-gradient(135deg,${g[0]},${g[1]})">${t.tick[0]}</div>`;
+  if (t.imageUrl) {
+    return `<img class="tk-img" src="${t.imageUrl}" width="${sz}" height="${sz}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${t.name}"><div class="tk-img-fallback" style="display:none;width:${sz}px;height:${sz}px;background:linear-gradient(135deg,${g[0]},${g[1]})">${t.tick[0]}</div>`;
   }
-  return `<div class="tk-img-fallback" style="width:${sz}px;height:${sz}px;background:linear-gradient(135deg,${g[0]},${g[1]});font-size:${sz*.4}px">${t.tick[0]}</div>`;
+  return `<div class="tk-img-fallback" style="width:${sz}px;height:${sz}px;background:linear-gradient(135deg,${g[0]},${g[1]});font-size:${sz * .4}px">${t.tick[0]}</div>`;
 }
 
 function sparkSVG(t) {
-  const pts=[]; const up=t.h24>0;
-  for(let i=0;i<22;i++){const b=up?8+(i/21)*18:26-(i/21)*18;pts.push(b+(Math.random()-.5)*7)}
-  const mn=Math.min(...pts),mx=Math.max(...pts);
-  const d=pts.map((v,i)=>`${(i/21)*88},${32-((v-mn)/(mx-mn||1))*28}`).join(' ');
-  const col=up?'var(--accent)':'var(--red)';
-  const last=pts[pts.length-1]; const ly=32-((last-mn)/(mx-mn||1))*28;
+  const vals = [t.h24 || 0, t.h6 || 0, t.h1 || 0, t.m5 || 0];
+  const pts = [];
+  for (let i = 0; i < 22; i++) {
+    const seg = (i / 21) * 3;
+    const idx = Math.min(Math.floor(seg), 2);
+    const frac = seg - idx;
+    const v = vals[idx] * (1 - frac) + vals[Math.min(idx + 1, 3)] * frac;
+    pts.push(16 + v * 0.08 + (Math.random() - 0.5) * 2);
+  }
+  const mn = Math.min(...pts), mx = Math.max(...pts), range = mx - mn || 1;
+  const d = pts.map((v, i) => `${(i / 21) * 88},${32 - ((v - mn) / range) * 28}`).join(' ');
+  const up = (t.h24 || 0) >= 0;
+  const col = up ? 'var(--accent)' : 'var(--red)';
+  const ly = 32 - ((pts[21] - mn) / range) * 28;
   return `<div class="spark"><svg viewBox="0 0 88 32"><defs><linearGradient id="sg${t.rank}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${col}" stop-opacity="0.15"/><stop offset="100%" stop-color="${col}" stop-opacity="0"/></linearGradient></defs><polygon points="0,32 ${d} 88,32" fill="url(#sg${t.rank})"/><polyline points="${d}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="88" cy="${ly}" r="2.5" fill="${col}" opacity="0.8"/></svg></div>`;
 }
 
+// =============================================
+// RENDER TABLE
+// =============================================
 function render() {
-  document.getElementById('tbody').innerHTML = tokens.map((t,i) => `
-    <tr onclick="openModal(${i})" style="animation-delay:${i*0.04}s">
-      <td><span class="rank ${t.rank<=3?'gold':''}">${t.rank}</span></td>
-      <td>
-        <div class="tk">
-          ${tokenImgHTML(t)}
-          <div>
-            <div class="tk-name">
-              ${t.name}
-              ${t.verified ? '<span class="verified-badge">✓</span>' : ''}
-              <span class="chain-dot" style="background:${t.cc}"></span>
-              ${t.ageH <= 6 ? '<span class="new-tag">NEW</span>' : ''}
-            </div>
-            <div class="tk-sub">${t.tick}/${t.pair} · ${t.age}</div>
-          </div>
-        </div>
-      </td>
-      <td class="price" data-field="price">${t.p<.001?'$'+t.p.toExponential(2):'$'+t.p.toFixed(5)}</td>
+  if (isLoading) {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="14" style="text-align:center;padding:60px;color:var(--text-muted)"><div class="chart-loading" style="position:static;background:none"><div class="spinner"></div>Loading live data from DexScreener...</div></td></tr>';
+    return;
+  }
+  document.getElementById('tbody').innerHTML = tokens.map((t, i) => `
+    <tr onclick="openModal(${i})" style="animation-delay:${i * 0.04}s">
+      <td><span class="rank ${t.rank <= 3 ? 'gold' : ''}">${t.rank}</span></td>
+      <td><div class="tk">${tokenImgHTML(t)}<div><div class="tk-name">${t.name}${t.verified ? ' <span class="verified-badge">✓</span>' : ''}<span class="chain-dot" style="background:${t.cc}"></span>${t.ageH <= 6 ? '<span class="new-tag">NEW</span>' : ''}</div><div class="tk-sub">${t.tick}/${t.pair} · ${t.age}</div></div></div></td>
+      <td class="price">${fmtPrice(t.p)}</td>
       <td>${aiHTML(t.ai)}</td>
       <td>${sparkSVG(t)}</td>
-      <td data-field="m5">${chg(t.m5)}</td>
+      <td>${chg(t.m5)}</td>
       <td>${chg(t.h1)}</td>
       <td>${chg(t.h6)}</td>
       <td>${chg(t.h24)}</td>
       <td class="muted">$${fmtVol(t.volRaw)}</td>
-      <td class="muted">$${fmtLiq(t.liqRaw)}</td>
-      <td class="muted">$${t.mc}</td>
+      <td class="muted">$${fmtVol(t.liqRaw)}</td>
+      <td class="muted">$${fmtMc(t.mcRaw)}</td>
       <td>${safeHTML(t.safe)}</td>
       <td><div class="qt"><button class="qt-btn qt-buy" onclick="event.stopPropagation()">BUY</button><button class="qt-btn qt-sell" onclick="event.stopPropagation()">SELL</button></div></td>
     </tr>
   `).join('');
 }
 
-// Sidebar renders
+// =============================================
+// SIDEBAR
+// =============================================
 function renderHeat() {
-  document.getElementById('heatmap').innerHTML = tokens.map(t=>{const i=Math.min(Math.abs(t.h24)/500,1);const bg=t.h24>=0?`rgba(0,219,164,${.1+i*.45})`:`rgba(255,77,106,${.1+i*.45})`;const disp=Math.abs(t.h24)>999?(t.h24/1000).toFixed(1)+'K':t.h24.toFixed(0);return`<div class="heat" style="background:${bg}"><span class="h-name">${t.tick}</span><span class="h-val">${t.h24>0?'+':''}${disp}%</span></div>`}).join('');
+  if (!tokens.length) return;
+  document.getElementById('heatmap').innerHTML = tokens.slice(0, 12).map(t => {
+    const i = Math.min(Math.abs(t.h24) / 100, 1);
+    const bg = t.h24 >= 0 ? `rgba(0,219,164,${.1 + i * .45})` : `rgba(255,77,106,${.1 + i * .45})`;
+    const v = Math.abs(t.h24) > 999 ? (t.h24 / 1000).toFixed(1) + 'K' : t.h24.toFixed(1);
+    return `<div class="heat" style="background:${bg}"><span class="h-name">${t.tick}</span><span class="h-val">${t.h24 > 0 ? '+' : ''}${v}%</span></div>`;
+  }).join('');
 }
 function renderWallets() {
-  const data=[{a:'7xK2...mP9f',act:'Bought $420K',t:'buy',tok:'BUTT',pnl:'+$1.2M',pc:'up',i:'🐋'},{a:'Dg4R...xT2w',act:'Sold $180K',t:'sell',tok:'ANON',pnl:'+$89K',pc:'up',i:'🦈'},{a:'9pLk...vN8q',act:'Bought $95K',t:'buy',tok:'DWC',pnl:'+$340K',pc:'up',i:'🐳'},{a:'Bx7m...hR3s',act:'Sold $2.1M',t:'sell',tok:'GIGA',pnl:'-$45K',pc:'down',i:'🦑'}];
-  document.getElementById('wallets').innerHTML=data.map(w=>`<div class="wallet-row"><div class="wallet-avi">${w.i}</div><div class="wallet-info"><div class="wallet-addr">${w.a}</div><div class="wallet-act ${w.t}">${w.act} of ${w.tok}</div></div><div class="wallet-pnl ${w.pc}">${w.pnl}</div></div>`).join('');
+  const w = [
+    { a: '7xK2...mP9f', act: 'Bought $420K', t: 'buy', tok: tokens[0]?.tick || '???', pnl: '+$1.2M', pc: 'up', i: '🐋' },
+    { a: 'Dg4R...xT2w', act: 'Sold $180K', t: 'sell', tok: tokens[1]?.tick || '???', pnl: '+$89K', pc: 'up', i: '🦈' },
+    { a: '9pLk...vN8q', act: 'Bought $95K', t: 'buy', tok: tokens[2]?.tick || '???', pnl: '+$340K', pc: 'up', i: '🐳' },
+    { a: 'Bx7m...hR3s', act: 'Sold $2.1M', t: 'sell', tok: tokens[3]?.tick || '???', pnl: '-$45K', pc: 'down', i: '🦑' },
+  ];
+  document.getElementById('wallets').innerHTML = w.map(x => `<div class="wallet-row"><div class="wallet-avi">${x.i}</div><div class="wallet-info"><div class="wallet-addr">${x.a}</div><div class="wallet-act ${x.t}">${x.act} of ${x.tok}</div></div><div class="wallet-pnl ${x.pc}">${x.pnl}</div></div>`).join('');
 }
-function renderFeed() {
-  const data=[{t:'2s',a:'BUY',c:'buy',tok:'ANON',amt:'$4.2K'},{t:'5s',a:'SELL',c:'sell',tok:'BUTT',amt:'$12.8K'},{t:'8s',a:'BUY',c:'buy',tok:'DWC',amt:'$890'},{t:'12s',a:'BUY',c:'buy',tok:'PTAH',amt:'$2.1K'},{t:'15s',a:'SELL',c:'sell',tok:'EDOGE',amt:'$45K'},{t:'18s',a:'BUY',c:'buy',tok:'BWHAL',amt:'$670'},{t:'23s',a:'BUY',c:'buy',tok:'MCAT',amt:'$3.4K'},{t:'28s',a:'SELL',c:'sell',tok:'JEET',amt:'$8.9K'}];
-  document.getElementById('feed').innerHTML=data.map(f=>`<div class="feed-row"><span class="feed-time">${f.t}</span><span class="feed-type ${f.c}">${f.a}</span><span class="feed-tok">${f.tok}</span><span class="feed-amt">${f.amt}</span></div>`).join('');
+function renderDynamicFeed() {
+  if (!tokens.length) return;
+  const data = [];
+  for (let i = 0; i < 10; i++) {
+    const t = tokens[Math.floor(Math.random() * tokens.length)];
+    const isBuy = Math.random() > 0.4;
+    data.push({ t: `${i * 3 + Math.floor(Math.random() * 3)}s`, a: isBuy ? 'BUY' : 'SELL', c: isBuy ? 'buy' : 'sell', tok: t.tick, amt: `$${(Math.random() * 50 + 0.5).toFixed(1)}K` });
+  }
+  document.getElementById('feed').innerHTML = data.map(f => `<div class="feed-row"><span class="feed-time">${f.t}</span><span class="feed-type ${f.c}">${f.a}</span><span class="feed-tok">${f.tok}</span><span class="feed-amt">${f.amt}</span></div>`).join('');
 }
 
-// Modal
+// =============================================
+// MODAL — Token Detail
+// =============================================
 function openModal(i) {
   const t = tokens[i];
-  const g = gradients[(t.rank-1) % gradients.length];
-  
+  if (!t) return;
+  const g = gradients[(t.rank - 1) % gradients.length];
+
   // Banner
   const banner = document.getElementById('modalBanner');
-  const unclaimed = document.getElementById('unclaimedBanner');
-  if (t.hasBanner) {
-    banner.innerHTML = `<div class="modal-banner-bg" style="background:linear-gradient(135deg,${g[0]}40,${g[1]}40)"></div><div class="modal-banner-overlay"></div>`;
+  if (t.hasBanner && t.bannerUrl) {
+    banner.innerHTML = `<div class="modal-banner-bg" style="background-image:url('${t.bannerUrl}')"></div><div class="modal-banner-overlay"></div>`;
   } else {
     banner.innerHTML = `<div class="unclaimed-banner"><div class="unclaimed-banner-text">🖼️ No banner uploaded — <button class="claim-banner-btn" onclick="openClaim(event)">Claim This Token Profile</button></div></div>`;
   }
 
   // Icon
   const iconEl = document.getElementById('mIcon');
-  const imgUrl = tokenImages[t.name];
-  if (imgUrl) {
-    iconEl.outerHTML = `<img class="modal-icon" id="mIcon" src="${imgUrl}" width="56" height="56" style="border-radius:var(--radius-md);border:3px solid var(--bg-primary)" onerror="this.outerHTML='<div class=\\'modal-icon-fallback\\' id=\\'mIcon\\' style=\\'background:linear-gradient(135deg,${g[0]},${g[1]})\\'>${t.tick[0]}</div>'">`;
+  if (t.imageUrl) {
+    iconEl.outerHTML = `<img class="modal-icon" id="mIcon" src="${t.imageUrl}" width="56" height="56" style="border-radius:var(--radius-md);border:3px solid var(--bg-primary)" onerror="this.outerHTML='<div class=\\'modal-icon-fallback\\' id=\\'mIcon\\' style=\\'background:linear-gradient(135deg,${g[0]},${g[1]})\\'>${t.tick[0]}</div>'">`;
   } else {
     iconEl.outerHTML = `<div class="modal-icon-fallback" id="mIcon" style="background:linear-gradient(135deg,${g[0]},${g[1]})">${t.tick[0]}</div>`;
   }
-  
-  document.getElementById('mName').innerHTML = `${t.name} ${t.verified ? '<span class="verified-badge">✓</span>' : ''}`;
-  document.getElementById('mPair').textContent = `${t.tick}/${t.pair} · ${t.chain}`;
-  document.getElementById('mPrice').textContent = t.p<.001?'$'+t.p.toExponential(2):'$'+t.p.toFixed(5);
-  const ce = document.getElementById('mChg');
-  ce.textContent = `${t.h24>=0?'+':''}${t.h24.toFixed(2)}%`;
-  ce.className = `modal-chg ${t.h24>=0?'up':'down'}`;
 
-  // Chart — TradingView Advanced Chart Widget
+  document.getElementById('mName').innerHTML = `${t.name} ${t.verified ? '<span class="verified-badge">✓</span>' : ''}`;
+  document.getElementById('mPair').textContent = `${t.tick}/${t.pair} · Solana`;
+  document.getElementById('mPrice').innerHTML = fmtPrice(t.p);
+  const ce = document.getElementById('mChg');
+  ce.textContent = `${t.h24 >= 0 ? '+' : ''}${t.h24.toFixed(2)}%`;
+  ce.className = `modal-chg ${t.h24 >= 0 ? 'up' : 'down'}`;
+
+  // Social links from real API data
+  const sb = document.getElementById('socialBar');
+  let sh = '';
+  const site = t.websites?.[0]?.url || t.websites?.[0];
+  sh += site ? `<a class="social-link" href="${site}" target="_blank">🌐 Website</a>` : '<a class="social-link empty">🌐 Website</a>';
+  const tw = t.socials?.find(s => s.type === 'twitter' || s.platform === 'twitter');
+  sh += tw ? `<a class="social-link" href="${tw.url}" target="_blank">𝕏 Twitter</a>` : '<a class="social-link empty">𝕏 Twitter</a>';
+  const tg = t.socials?.find(s => s.type === 'telegram' || s.platform === 'telegram');
+  sh += tg ? `<a class="social-link" href="${tg.url}" target="_blank">✈️ Telegram</a>` : '<a class="social-link empty">✈️ Telegram</a>';
+  sh += '<a class="social-link empty">📸 Instagram</a>';
+  const dc = t.socials?.find(s => s.type === 'discord' || s.platform === 'discord');
+  sh += dc ? `<a class="social-link" href="${dc.url}" target="_blank">💬 Discord</a>` : '<a class="social-link empty">💬 Discord</a>';
+  sh += '<div class="social-sep"></div><button class="claim-profile-btn" onclick="openClaim(event)">✨ Claim & Edit Profile</button>';
+  sb.innerHTML = sh;
+
+  // ---- CHART: DexScreener Embed (reliable, works in iframes) ----
   const chartEl = document.getElementById('chartArea');
-  const tvSymbol = tvSymbols[t.name] || 'BINANCE:SOLUSDT';
-  const tvId = 'tv_' + Date.now();
-  chartEl.innerHTML = `<div class="chart-loading" id="chartLoader"><div class="spinner"></div>Loading chart...</div><div id="${tvId}" style="width:100%;height:100%"></div>`;
-  
-  // Load TradingView widget
-  const tvScript = document.createElement('script');
-  tvScript.src = 'https://s.tradingview.com/tv.js';
-  tvScript.onload = () => {
-    if (typeof TradingView !== 'undefined') {
-      new TradingView.widget({
-        container_id: tvId,
-        symbol: tvSymbol,
-        theme: 'dark',
-        style: '1',
-        locale: 'en',
-        toolbar_bg: '#0f1420',
-        enable_publishing: false,
-        allow_symbol_change: false,
-        hide_top_toolbar: false,
-        hide_legend: false,
-        save_image: false,
-        autosize: true,
-        backgroundColor: '#0f1420',
-        gridColor: 'rgba(255,255,255,0.03)',
-        studies: ['Volume@tv-basicstudies'],
-        overrides: {
-          'paneProperties.background': '#0f1420',
-          'paneProperties.backgroundType': 'solid',
-          'mainSeriesProperties.candleStyle.upColor': '#00dba4',
-          'mainSeriesProperties.candleStyle.downColor': '#ff4d6a',
-          'mainSeriesProperties.candleStyle.wickUpColor': '#00dba4',
-          'mainSeriesProperties.candleStyle.wickDownColor': '#ff4d6a',
-        }
-      });
-      const loader = document.getElementById('chartLoader');
-      if (loader) setTimeout(() => loader.style.display = 'none', 1500);
-    }
-  };
-  // Check if already loaded
-  if (typeof TradingView !== 'undefined') {
-    tvScript.onload();
+  if (t.pairAddress) {
+    const embedUrl = `https://dexscreener.com/solana/${t.pairAddress}?embed=1&theme=dark&trades=0&info=0`;
+    chartEl.innerHTML = `
+      <div class="chart-loading" id="chartLoader"><div class="spinner"></div>Loading chart...</div>
+      <iframe
+        src="${embedUrl}"
+        style="width:100%;height:100%;border:none;border-radius:var(--radius-lg)"
+        loading="eager"
+        allow="clipboard-write"
+        onload="var cl=document.getElementById('chartLoader');if(cl)cl.style.display='none'"
+      ></iframe>`;
   } else {
-    document.head.appendChild(tvScript);
+    chartEl.innerHTML = '<div class="chart-loading">Chart unavailable</div>';
   }
+
+  // AI Analysis — real data
+  const rugProb = Math.max(2, 100 - t.ai);
+  const rc = rugProb <= 20 ? 'var(--accent)' : rugProb <= 50 ? 'var(--orange)' : 'var(--red)';
+  const rl = rugProb <= 20 ? 'Low Risk' : rugProb <= 50 ? 'Medium Risk' : 'High Risk';
+  document.querySelector('.ai-box').innerHTML = `
+    <div class="ai-box-title">🧠 AI Token Analysis</div>
+    <div class="ai-row"><span class="ai-row-label">Rug Probability</span><span class="ai-row-val" style="color:${rc}">${rugProb}% — ${rl}</span></div>
+    <div class="ai-row"><span class="ai-row-label">24h Volume</span><span class="ai-row-val" style="color:var(--text-primary)">$${fmtVol(t.volRaw)}</span></div>
+    <div class="ai-row"><span class="ai-row-label">Liquidity</span><span class="ai-row-val" style="color:${t.liqRaw > 100000 ? 'var(--accent)' : 'var(--orange)'}">$${fmtVol(t.liqRaw)}</span></div>
+    <div class="ai-row"><span class="ai-row-label">24h Transactions</span><span class="ai-row-val" style="color:var(--text-primary)">${(t.txns24 || 0).toLocaleString()}</span></div>
+    <div class="ai-row"><span class="ai-row-label">Buy/Sell Ratio</span><span class="ai-row-val" style="color:${t.buyRatio > 0.5 ? 'var(--accent)' : 'var(--red)'}">${((t.buyRatio || 0.5) * 100).toFixed(0)}% buys</span></div>
+    <div class="ai-row"><span class="ai-row-label">Market Cap</span><span class="ai-row-val" style="color:var(--text-primary)">$${fmtMc(t.mcRaw)}</span></div>
+    <div class="ai-row"><span class="ai-row-label">Pair Age</span><span class="ai-row-val" style="color:var(--text-primary)">${t.age}</span></div>
+    <div class="dist">
+      <div class="input-label" style="margin-bottom:10px">RADAR Safety Score</div>
+      <div class="dist-row"><span class="dist-label">Score</span><div class="dist-bar"><div class="dist-fill" style="width:${t.ai}%;background:${t.ai >= 70 ? 'var(--accent)' : t.ai >= 40 ? 'var(--orange)' : 'var(--red)'}"></div></div><span class="dist-pct">${t.ai}</span></div>
+    </div>`;
 
   document.getElementById('modal').classList.add('active');
 }
-function closeModal() { document.getElementById('modal').classList.remove('active'); }
-document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+  document.getElementById('chartArea').innerHTML = '';
+}
+document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 
 // Claim Profile Modal
 function openClaim(e) { e && e.stopPropagation(); document.getElementById('claimModal').classList.add('active'); }
 function closeClaim() { document.getElementById('claimModal').classList.remove('active'); }
-document.getElementById('claimModal').addEventListener('click',e=>{if(e.target.id==='claimModal')closeClaim()});
+document.getElementById('claimModal').addEventListener('click', e => { if (e.target.id === 'claimModal') closeClaim(); });
 
 // Trade tabs
-function setTab(el,type) {
-  document.querySelectorAll('.t-tab').forEach(t=>{t.classList.remove('buy-active','sell-active')});
-  el.classList.add(type==='buy'?'buy-active':'sell-active');
-  const btn=document.getElementById('execBtn');
-  if(type==='sell'){btn.textContent='⚡ Quick Sell';btn.className='exec-btn';btn.style.background='var(--red)';btn.style.color='white';btn.style.boxShadow='0 4px 20px rgba(255,77,106,0.2)'}
-  else{btn.textContent='⚡ Quick Buy';btn.className='exec-btn buy';btn.style=''}
+function setTab(el, type) {
+  document.querySelectorAll('.t-tab').forEach(t => t.classList.remove('buy-active', 'sell-active'));
+  el.classList.add(type === 'buy' ? 'buy-active' : 'sell-active');
+  const btn = document.getElementById('execBtn');
+  if (type === 'sell') { btn.textContent = '⚡ Quick Sell'; btn.className = 'exec-btn'; btn.style.background = 'var(--red)'; btn.style.color = 'white'; btn.style.boxShadow = '0 4px 20px rgba(255,77,106,0.2)'; }
+  else { btn.textContent = '⚡ Quick Buy'; btn.className = 'exec-btn buy'; btn.style = ''; }
 }
 
 // Interactive filters
-document.querySelectorAll('.nav-item').forEach(n=>n.addEventListener('click',function(){document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')}));
-document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',function(){this.closest('.chip-group').querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));this.classList.add('active')}));
-document.querySelectorAll('.tf-btn').forEach(b=>b.addEventListener('click',function(){this.closest('.tf-group').querySelectorAll('.tf-btn').forEach(x=>x.classList.remove('active'));this.classList.add('active')}));
+document.querySelectorAll('.nav-item').forEach(n => n.addEventListener('click', function () { document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active')); this.classList.add('active'); }));
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', function () { this.closest('.chip-group').querySelectorAll('.chip').forEach(x => x.classList.remove('active')); this.classList.add('active'); }));
+document.querySelectorAll('.tf-btn').forEach(b => b.addEventListener('click', function () { this.closest('.tf-group').querySelectorAll('.tf-btn').forEach(x => x.classList.remove('active')); this.classList.add('active'); }));
 
-// Init
-render(); renderHeat(); renderWallets(); renderFeed();
+// =============================================
+// INIT & AUTO-REFRESH
+// =============================================
+render();
+renderWallets();
+fetchTokens();
+fetchTickerPrices();
 
-// Live price updates — in-place patching only
-setInterval(() => {
-  const rows = document.querySelectorAll('#tbody tr');
-  tokens.forEach((t,i) => {
-    t.p *= (1 + (Math.random()-.48)*.004);
-    t.m5 += (Math.random()-.48)*.3;
-    if (!rows[i]) return;
-    const cells = rows[i].querySelectorAll('td');
-    cells[2].textContent = t.p<.001?'$'+t.p.toExponential(2):'$'+t.p.toFixed(5);
-    cells[5].innerHTML = chg(t.m5);
-  });
-}, 4000);
+// Refresh: tokens every 30s, ticker every 60s, feed every 15s
+setInterval(fetchTokens, 30000);
+setInterval(fetchTickerPrices, 60000);
+setInterval(renderDynamicFeed, 15000);
 </script>
 </body>
 </html>
