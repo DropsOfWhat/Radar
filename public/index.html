@@ -266,14 +266,10 @@ tr:hover .qt{opacity:1}
 
 .modal-content{flex:1;display:flex;overflow:hidden}
 .modal-chart{flex:1;padding:24px;display:flex;flex-direction:column}
-.chart-area{flex:1;border-radius:var(--radius-lg);background:var(--bg-card);border:1px solid var(--border-subtle);display:flex;align-items:flex-end;justify-content:center;padding:30px;overflow:hidden;position:relative}
-.chart-area::before{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,rgba(0,219,164,0.03),transparent);pointer-events:none}
-.candles{display:flex;align-items:flex-end;gap:4px;height:80%;width:100%}
-.candle{flex:1;border-radius:3px 3px 0 0;min-width:6px;animation:candleUp .6s ease-out backwards;position:relative}
-.candle::after{content:'';position:absolute;width:2px;left:calc(50% - 1px);top:-8px;height:8px;background:inherit;border-radius:1px;opacity:.6}
-@keyframes candleUp{from{height:0!important;opacity:0}}
-.candle.g{background:var(--accent);box-shadow:0 0 6px rgba(0,219,164,0.15)}
-.candle.r{background:var(--red);box-shadow:0 0 6px rgba(255,77,106,0.1)}
+.chart-area{flex:1;border-radius:var(--radius-lg);background:var(--bg-card);border:1px solid var(--border-subtle);overflow:hidden;position:relative}
+.chart-area iframe{width:100%;height:100%;border:none;border-radius:var(--radius-lg)}
+.chart-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:.85rem;z-index:1;background:var(--bg-card)}
+.chart-loading .spinner{width:28px;height:28px;border-radius:50%;border:3px solid var(--border-default);border-top-color:var(--accent);animation:spin 1s linear infinite}
 
 .modal-side{width:370px;border-left:1px solid var(--border-subtle);overflow-y:auto;padding:20px;background:rgba(255,255,255,0.01)}
 
@@ -518,6 +514,18 @@ tr:hover .qt{opacity:1}
 
     <div class="modal-content">
       <div class="modal-chart">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+          <div class="tf-group" style="margin-right:8px">
+            <button class="tf-btn">1M</button>
+            <button class="tf-btn">5M</button>
+            <button class="tf-btn active">15M</button>
+            <button class="tf-btn">1H</button>
+            <button class="tf-btn">4H</button>
+            <button class="tf-btn">1D</button>
+          </div>
+          <div style="flex:1"></div>
+          <span style="font-family:var(--font-mono);font-size:.65rem;color:var(--text-muted)">Powered by GeckoTerminal</span>
+        </div>
         <div class="chart-area" id="chartArea"></div>
       </div>
       <div class="modal-side">
@@ -661,19 +669,27 @@ const tokenImages = {
   'PETAH': 'https://cdn.dexscreener.com/cms/images/6c3c2a230cfe80e123a7d42c354e752604346f85af2b1f925b174d53f33c5ecf?width=64&height=64&fit=crop&quality=95&format=auto',
 };
 
+// Chart embed URLs — in production these come from your own indexer
+// Using GeckoTerminal embeds for the prototype (neutral source)
+const chartEmbeds = {
+  'solana': (addr) => `https://www.geckoterminal.com/solana/pools/${addr}?embed=1&info=0&swaps=0&grayscale=0&light_chart=0`,
+  'eth':    (addr) => `https://www.geckoterminal.com/eth/pools/${addr}?embed=1&info=0&swaps=0&grayscale=0&light_chart=0`,
+  'base':   (addr) => `https://www.geckoterminal.com/base/pools/${addr}?embed=1&info=0&swaps=0&grayscale=0&light_chart=0`,
+};
+
 const tokens = [
-  { rank:1, name:'anonymous',tick:'ANON', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0003051,m5:12.45,h1:1.29,h6:82.79,h24:50.94,vol:'3.7M',liq:'52K',mc:'305K',ai:72,safe:'warn',age:'1d',verified:false,hasBanner:false },
-  { rank:2, name:'Buttcoin', tick:'BUTT', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.03929,m5:-3.62,h1:-1.98,h6:-0.49,h24:44.29,vol:'3.9M',liq:'893K',mc:'39.2M',ai:85,safe:'safe',age:'28d',verified:true,hasBanner:true },
-  { rank:3, name:'PETAH',    tick:'PTAH', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0005211,m5:8.21,h1:15.44,h6:120.33,h24:890.21,vol:'2.1M',liq:'78K',mc:'521K',ai:64,safe:'warn',age:'3d',verified:false,hasBanner:false },
-  { rank:4, name:'DogWifCat',tick:'DWC',  pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.001842,m5:5.33,h1:22.10,h6:45.67,h24:178.90,vol:'5.2M',liq:'234K',mc:'1.8M',ai:91,safe:'safe',age:'12d',verified:true,hasBanner:true },
-  { rank:5, name:'BasedPepe',tick:'BPEPE',pair:'ETH',chain:'BASE',cc:'#2b6def',p:0.00004521,m5:-1.23,h1:8.90,h6:34.56,h24:67.89,vol:'1.8M',liq:'445K',mc:'4.5M',ai:78,safe:'safe',age:'5d',verified:true,hasBanner:false },
-  { rank:6, name:'GigaChad', tick:'GIGA', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.02341,m5:2.11,h1:-4.32,h6:12.45,h24:23.67,vol:'890K',liq:'120K',mc:'2.3M',ai:82,safe:'safe',age:'45d',verified:false,hasBanner:false },
-  { rank:7, name:'RugSafe',  tick:'SAFE', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0000089,m5:45.67,h1:234.56,h6:890.12,h24:2341.56,vol:'670K',liq:'12K',mc:'89K',ai:18,safe:'danger',age:'2h',verified:false,hasBanner:false },
-  { rank:8, name:'ElonDoge', tick:'EDOGE',pair:'ETH',chain:'ETH',cc:'#627eea',p:0.0001234,m5:-8.90,h1:-12.34,h6:-25.67,h24:-45.89,vol:'456K',liq:'67K',mc:'1.2M',ai:45,safe:'warn',age:'14d',verified:false,hasBanner:false },
-  { rank:9, name:'Mooncat',  tick:'MCAT', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.008912,m5:1.23,h1:5.67,h6:18.90,h24:34.56,vol:'1.2M',liq:'345K',mc:'8.9M',ai:88,safe:'safe',age:'21d',verified:true,hasBanner:true },
-  { rank:10,name:'BabyWhale',tick:'BWHAL',pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0004567,m5:15.67,h1:45.89,h6:123.45,h24:456.78,vol:'2.8M',liq:'156K',mc:'4.5M',ai:76,safe:'safe',age:'6d',verified:false,hasBanner:false },
-  { rank:11,name:'TONCat',   tick:'TCAT', pair:'TON',chain:'TON',cc:'#0098ea',p:0.00234,m5:3.45,h1:12.34,h6:28.90,h24:56.78,vol:'780K',liq:'89K',mc:'2.3M',ai:71,safe:'safe',age:'8d',verified:false,hasBanner:false },
-  { rank:12,name:'JeetKing', tick:'JEET', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0000456,m5:-15.67,h1:-28.90,h6:-45.67,h24:-67.89,vol:'340K',liq:'23K',mc:'456K',ai:32,safe:'warn',age:'3d',verified:false,hasBanner:false },
+  { rank:1, name:'anonymous',tick:'ANON', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0003051,m5:12.45,h1:1.29,h6:82.79,h24:50.94,vol:'3.7M',liq:'52K',mc:'305K',ai:72,safe:'warn',age:'1d',verified:false,hasBanner:false, poolAddr:'Dz9iPEbMBeLGc91TCVtE8v8bTFcxVoHoQKSSuENn3B5x',chainSlug:'solana' },
+  { rank:2, name:'Buttcoin', tick:'BUTT', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.03929,m5:-3.62,h1:-1.98,h6:-0.49,h24:44.29,vol:'3.9M',liq:'893K',mc:'39.2M',ai:85,safe:'safe',age:'28d',verified:true,hasBanner:true, poolAddr:'FFcYGSSgWhFoRa9rxxKA48P8YfOz8tSW85jpo3cQHdYS',chainSlug:'solana' },
+  { rank:3, name:'PETAH',    tick:'PTAH', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0005211,m5:8.21,h1:15.44,h6:120.33,h24:890.21,vol:'2.1M',liq:'78K',mc:'521K',ai:64,safe:'warn',age:'3d',verified:false,hasBanner:false, poolAddr:'Dz9iPEbMBeLGc91TCVtE8v8bTFcxVoHoQKSSuENn3B5x',chainSlug:'solana' },
+  { rank:4, name:'DogWifCat',tick:'DWC',  pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.001842,m5:5.33,h1:22.10,h6:45.67,h24:178.90,vol:'5.2M',liq:'234K',mc:'1.8M',ai:91,safe:'safe',age:'12d',verified:true,hasBanner:true, poolAddr:'EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx',chainSlug:'solana' },
+  { rank:5, name:'BasedPepe',tick:'BPEPE',pair:'ETH',chain:'BASE',cc:'#2b6def',p:0.00004521,m5:-1.23,h1:8.90,h6:34.56,h24:67.89,vol:'1.8M',liq:'445K',mc:'4.5M',ai:78,safe:'safe',age:'5d',verified:true,hasBanner:false, poolAddr:'0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24',chainSlug:'base' },
+  { rank:6, name:'GigaChad', tick:'GIGA', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.02341,m5:2.11,h1:-4.32,h6:12.45,h24:23.67,vol:'890K',liq:'120K',mc:'2.3M',ai:82,safe:'safe',age:'45d',verified:false,hasBanner:false, poolAddr:'7VfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',chainSlug:'solana' },
+  { rank:7, name:'RugSafe',  tick:'SAFE', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0000089,m5:45.67,h1:234.56,h6:890.12,h24:2341.56,vol:'670K',liq:'12K',mc:'89K',ai:18,safe:'danger',age:'2h',verified:false,hasBanner:false, poolAddr:'FFcYGSSgWhFoRa9rxxKA48P8YfOz8tSW85jpo3cQHdYS',chainSlug:'solana' },
+  { rank:8, name:'ElonDoge', tick:'EDOGE',pair:'ETH',chain:'ETH',cc:'#627eea',p:0.0001234,m5:-8.90,h1:-12.34,h6:-25.67,h24:-45.89,vol:'456K',liq:'67K',mc:'1.2M',ai:45,safe:'warn',age:'14d',verified:false,hasBanner:false, poolAddr:'0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',chainSlug:'eth' },
+  { rank:9, name:'Mooncat',  tick:'MCAT', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.008912,m5:1.23,h1:5.67,h6:18.90,h24:34.56,vol:'1.2M',liq:'345K',mc:'8.9M',ai:88,safe:'safe',age:'21d',verified:true,hasBanner:true, poolAddr:'EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx',chainSlug:'solana' },
+  { rank:10,name:'BabyWhale',tick:'BWHAL',pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0004567,m5:15.67,h1:45.89,h6:123.45,h24:456.78,vol:'2.8M',liq:'156K',mc:'4.5M',ai:76,safe:'safe',age:'6d',verified:false,hasBanner:false, poolAddr:'7VfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',chainSlug:'solana' },
+  { rank:11,name:'TONCat',   tick:'TCAT', pair:'TON',chain:'TON',cc:'#0098ea',p:0.00234,m5:3.45,h1:12.34,h6:28.90,h24:56.78,vol:'780K',liq:'89K',mc:'2.3M',ai:71,safe:'safe',age:'8d',verified:false,hasBanner:false, poolAddr:'FFcYGSSgWhFoRa9rxxKA48P8YfOz8tSW85jpo3cQHdYS',chainSlug:'solana' },
+  { rank:12,name:'JeetKing', tick:'JEET', pair:'SOL',chain:'SOL',cc:'#9945ff',p:0.0000456,m5:-15.67,h1:-28.90,h6:-45.67,h24:-67.89,vol:'340K',liq:'23K',mc:'456K',ai:32,safe:'warn',age:'3d',verified:false,hasBanner:false, poolAddr:'Dz9iPEbMBeLGc91TCVtE8v8bTFcxVoHoQKSSuENn3B5x',chainSlug:'solana' },
 ];
 
 const chg = v => { const c = v>=0?'up':'down'; return `<span class="chg ${c}">${v>=0?'+':''}${v.toFixed(2)}%</span>`; };
@@ -778,11 +794,15 @@ function openModal(i) {
   ce.textContent = `${t.h24>=0?'+':''}${t.h24.toFixed(2)}%`;
   ce.className = `modal-chg ${t.h24>=0?'up':'down'}`;
 
-  // Chart
-  let html = '<div class="candles">';
-  for (let j=0;j<60;j++){const h=15+Math.random()*130;html+=`<div class="candle ${Math.random()>.4?'g':'r'}" style="height:${h}px;animation-delay:${j*.015}s"></div>`}
-  html += '</div>';
-  document.getElementById('chartArea').innerHTML = html;
+  // Chart — embed real chart from GeckoTerminal
+  const chartEl = document.getElementById('chartArea');
+  const embedFn = chartEmbeds[t.chainSlug];
+  if (embedFn && t.poolAddr) {
+    const src = embedFn(t.poolAddr);
+    chartEl.innerHTML = `<div class="chart-loading" id="chartLoader"><div class="spinner"></div>Loading chart...</div><iframe src="${src}" allow="clipboard-write" loading="lazy" onload="document.getElementById('chartLoader')&&(document.getElementById('chartLoader').style.display='none')"></iframe>`;
+  } else {
+    chartEl.innerHTML = `<div class="chart-loading">Chart unavailable for this pair</div>`;
+  }
 
   document.getElementById('modal').classList.add('active');
 }
